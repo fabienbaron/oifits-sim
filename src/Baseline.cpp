@@ -112,8 +112,9 @@ double  Baseline::GetVis2(Target & target, double hour_angle, double wavenumber)
 
 double Baseline::GetVis2(Target & target, UVPoint uv)
 {
-    complex<double> vis = this->GetVisibility(target, uv);
-    return norm(vis);   
+  // note: getvisibility will return a precomputed complex visibility i
+  complex<double> vis = this->GetVisibility(target, uv);
+  return norm(vis);   
 }
 
 /// Computes the visibility at the specified UV point.
@@ -131,8 +132,6 @@ complex<double> Baseline::ComputeVisibility(Target & target, UVPoint uv)
     {      
         int nx = target.image.GetRows();
         int ny = target.image.GetCols();
-
-        /// \todo This calculation could be farmed out to a GPU very easily.
         for (int ii = 0; ii < nx; ii++)
         {
             for (int jj = 0; jj < ny; jj++)

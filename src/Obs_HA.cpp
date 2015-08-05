@@ -71,7 +71,7 @@ vector <Observation*> Obs_HA::MakeObservations(Array * array, double start, doub
 		stop = temp;
 	}
 
-	int intervals = int((stop - start) / every);
+	int intervals = int((stop - start) / every)+1;
 	cout << "There will be " << intervals << " observations." << endl;
 
 	for(int i = 0; i < intervals; i++)
