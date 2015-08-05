@@ -113,7 +113,7 @@ double  Baseline::GetVis2(Target & target, double hour_angle, double wavelength,
 double Baseline::GetVis2(Target & target, UVPoint uv, double wavelength, double dwavelength)
 {
   // note: getvisibility will return a precomputed complex visibility i
-  complex<double> vis = this->GetVisibility(target, uv, double wavelength, double dwavelength);
+  complex<double> vis = this->GetVisibility(target, uv, wavelength, dwavelength);
   return norm(vis);
 }
 

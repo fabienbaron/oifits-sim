@@ -47,7 +47,7 @@ class Baseline
     //double Geometric_OPD(double hour_angle, double source_declination);
 
   private:
-    complex<double> ComputeVisibility(Target & target, UVPoint uv);
+    complex<double> ComputeVisibility(Target & target, UVPoint uv, double wavelength, double dwavelength);
     string  GetHashKey(Target & target, UVPoint uv);
 
   public:

@@ -306,7 +306,7 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
     int iwave = 0;
     string arrname = array->GetArrayName();
     string ins_name = spec_mode->spec_mode;
-    double wavenumber = 0;
+    double wavelength, dwavelength;
 
     double ra = target->right_ascension;
     double dec = target->declination;
@@ -508,8 +508,9 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
 
 		for(int j = 0; j < nwave; j++)
 		{
-		  wavenumber = spec_mode->mean_wavenumber[j];
-		  quad_clos = mQuadruplets[i]->GetT4(*target, this->mHA, wavenumber);
+		  wavelength = spec_mode->mean_wavelength[j];
+		  dwavelength = spec_mode->delta_wavelength[j];
+		  quad_clos = mQuadruplets[i]->GetT4(*target, this->mHA, wavelength, dwavelength);
 		  phi_err = noisemodel->GetT4PhaseVar(array, combiner, spec_mode, target, mQuadruplets[i], uv_AB, uv_CD, uv_AD, j);
 
 		  // assume circular noise cloud
