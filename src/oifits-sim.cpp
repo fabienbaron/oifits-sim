@@ -257,7 +257,7 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     if (type == HOUR_ANGLE || type == DESCRIPTIVE)
     {
       Obs_HA *observation = dynamic_cast<Obs_HA *>(observation_list.back());
-      printf("Simulating Observation at HA %f \n", observation->GetHA(target->right_ascension));
+      printf("Obs: %d / %d - Hour Angle: %3.3f \n",  (n_observations - i + 1),  n_observations, observation->GetHA(target->right_ascension));
 
     }
     else    //(type == OIFITS)
@@ -297,7 +297,7 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     observation_list.pop_back();
     delete observation;
 
-    cout << "Completed Observation " << (n_observations - i + 1) << endl;
+    //cout << "Completed Observation " << (n_observations - i + 1) << endl;
   }
 
   if (status)

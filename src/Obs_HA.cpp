@@ -94,15 +94,15 @@ vector <Observation*> Obs_HA::ReadObservation_HA(Array * array, vector < string 
     for(unsigned int j = i+1; j < lines.size(); j++)
     {
       results.clear();
-      results = SplitString(lines[j], '=');       
+      results = SplitString(lines[j], '=');
       StripWhitespace(results);
       if(results[0] == "hour_angle")
         {
 	  try
 	    {
-	      
+
 	      ha = atof(results[1].c_str());
-	      
+
 	      // Make a new observation with all of the stations included.
 	      observations.push_back(new Obs_HA(array, ha, array->GetAllStationNames(), "") );
 	    }
@@ -116,7 +116,7 @@ vector <Observation*> Obs_HA::ReadObservation_HA(Array * array, vector < string 
 	  printf("Warning, detected non-keyword, %s, in observation definition file.  Ignoring\n", results[0].c_str());
         }
     }
-    
+
     return observations;
 }
 
@@ -279,15 +279,15 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		for(int j = 0; j < nwave; j++)
 		  {
 		    wavenumber = spec_mode->mean_wavenumber[j];
-		    
+
 		    // Get the complex visibility, and its error.
 		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavenumber);
 		    // First save the amplitudes
-		    vis.record[i].visamperr[j] = 0;
-		    vis.record[i].visamp[j] = abs(cvis);
+		    vis.record[i].visamperr[j] = 0.1;
+		    vis.record[i].visamp[j] = 1.;//abs(cvis) + vis.record[i].visamperr[j] * Rangauss(random_seed);
 		    // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		    vis.record[i].visphierr[j] = 0.;
-		    vis.record[i].visphi[j] = arg(cvis) + vis.record[i].visphierr[j] * Rangauss(random_seed);;
+		    vis.record[i].visphierr[j] = 0.1; //*180./PI
+		    vis.record[i].visphi[j] = 1.;//arg(cvis) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
 		    vis.record[i].flag[j] = FALSE;
 		  }
 
@@ -335,11 +335,11 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 	for (int i = 0; i < npow; i++)
 	{
 		vis2.record[i].target_id = target->GetTargetID();
-		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
+		/// \bug The time is set to the HA in sec
 		vis2.record[i].time = this->GetHA(ra) * 3600.;
 		vis2.record[i].mjd = this->mJD;
-		/// \bug The integration time is set to 10 seconds by default.
-		vis2.record[i].int_time = 10;
+		/// \bug The integration time is set to 1 second by default.
+		vis2.record[i].int_time = 1;
 
 		// Compute the UV coordinates and record the station positions:
 		uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
@@ -359,8 +359,8 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 		    v2_err = noisemodel->GetVis2Var(array, combiner, spec_mode, target, this->mBaselines[i], uv, iwave);
 
 		    // Put out the visibility
-			vis2.record[i].vis2data[iwave] = v2 + v2_err * Rangauss(random_seed);
-			vis2.record[i].vis2err[iwave] = v2_err;
+			vis2.record[i].vis2err[iwave] = 1.; //v2_err;
+			vis2.record[i].vis2data[iwave] = v2 + vis2.record[i].vis2err[iwave] * Rangauss(random_seed);
 			vis2.record[i].flag[iwave] = FALSE;
 		}
 	}
@@ -428,13 +428,13 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 		  wavenumber = spec_mode->mean_wavenumber[j];
 		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavenumber);
 		  phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
-		  
+
 		  // First save the amplitudes
-		  t3.record[i].t3amperr[j] = sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
-		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);		
+		  t3.record[i].t3amperr[j] = 1.;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
+		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t3.record[i].t3phi[j] = (arg(bis) + phi_err * Rangauss(random_seed)) * 180. / PI;
-		  t3.record[i].t3phierr[j] = phi_err * 180. / PI;
+		  t3.record[i].t3phierr[j] = 5.; //phi_err * 180. / PI;
+		  t3.record[i].t3phi[j] = arg(bis) * 180. / PI + t3.record[i].t3phierr[j] * Rangauss(random_seed);
 		  t3.record[i].flag[j] = FALSE;
 		}
 
