@@ -239,7 +239,7 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
     string ins_name = spec_mode->spec_mode;
     complex<double> cvis;
     double phi_err;
-    double wavenumber;
+    double wavelength, dwavelength;
     double ra = target->right_ascension;
     double dec = target->declination;
 
@@ -278,10 +278,10 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		vis.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
 		for(int j = 0; j < nwave; j++)
 		  {
-		    wavenumber = spec_mode->mean_wavenumber[j];
-
+		    wavelength = spec_mode->mean_wavelength[j];
+            dwavelength = spec_mode->delta_wavelength[j];
 		    // Get the complex visibility, and its error.
-		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavenumber);
+		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavelength, dwavelength);
 		    // First save the amplitudes
 		    vis.record[i].visamperr[j] = 0.1;
 		    vis.record[i].visamp[j] = 1.;//abs(cvis) + vis.record[i].visamperr[j] * Rangauss(random_seed);
@@ -352,10 +352,11 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 		for (iwave = 0; iwave < nwave; iwave++)
 		{
 		    // look up the present wavenumber, and then find the data
-		    wavenumber = spec_mode->mean_wavenumber[iwave];
+            wavelength = spec_mode->mean_wavelength[iwave];
+            dwavelength = spec_mode->delta_wavelength[iwave];
 
 		    // Get the squared visibility, and its error.
-		    v2 = this->mBaselines[i]->GetVis2(*target, mHA, wavenumber);
+		    v2 = this->mBaselines[i]->GetVis2(*target, mHA, wavelength, dwavelength);
 		    v2_err = noisemodel->GetVis2Var(array, combiner, spec_mode, target, this->mBaselines[i], uv, iwave);
 
 		    // Put out the visibility
@@ -379,7 +380,7 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
     string ins_name = spec_mode->spec_mode;
     complex<double> bis;
     double phi_err;
-    double wavenumber;
+    double wavelength, dwavelength;
 
     UVPoint uv_AB;
     UVPoint uv_BC;
@@ -425,8 +426,10 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 
 		for(int j = 0; j < nwave; j++)
 		{
-		  wavenumber = spec_mode->mean_wavenumber[j];
-		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavenumber);
+		  wavelength = spec_mode->mean_wavelength[j];
+          dwavelength = spec_mode->delta_wavelength[j];
+
+		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavelength, dwavelength);
 		  phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
 
 		  // First save the amplitudes
@@ -453,7 +456,7 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
     string ins_name = spec_mode->spec_mode;
     complex<double> quad_clos;
     double phi_err;
-    double wavenumber;
+    double wavelength, dwavelength;
 
     UVPoint uv_AB;
     UVPoint uv_CD;

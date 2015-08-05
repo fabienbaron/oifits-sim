@@ -32,7 +32,7 @@ class Baseline
 {
   private:
     double xyz[3];  // True XYZ coordinates
-    
+
     string name;
     int indicies[2];
     VisHash     mVisValues; // Stores computed visibility values
@@ -42,36 +42,24 @@ class Baseline
     Baseline(void);
     Baseline(Array * array, int station1, int station2);
     Baseline(Station * station1, Station * station2);
-    
+
     /// \todo Rewrite this function to work with the new class definition.
     //double Geometric_OPD(double hour_angle, double source_declination);
-    
+
   private:
     complex<double> ComputeVisibility(Target & target, UVPoint uv);
-    double  ComputeVis2Error(Target & target, UVPoint uv);
-    
     string  GetHashKey(Target & target, UVPoint uv);
-    
+
   public:
     string  GetName(void);
-    complex<double> GetVisibility(Target & target, double hour_angle, double wavenumber);
-    complex<double> GetVisibility(Target & target, UVPoint uv_coords);
-    
-    double  GetVis2Error(Target & target, double hour_angle, double wavenumber);
-    double  GetVis2Error(Target & target, UVPoint uv_coords);
-    
-    double  GetVis2(Target & target, double hour_angle, double wavenumber);
-    double  GetVis2(Target & target, UVPoint uv_coords);
-    
-    
-    double  GetVis2Err(Target & target, double hour_angle, double wavenumber);
-    
-    void    SetVis2Error(Target & target, double hour_angle, double wavenumber, double vis2error);
-    void    SetVis2Error(Target & target, UVPoint uv, double vis2error);
-    
+    complex<double> GetVisibility(Target & target, double hour_angle, double wavelength, double dwavelength);
+    complex<double> GetVisibility(Target & target, UVPoint uv_coords, double wavelength, double dwavelength);
+
+    double  GetVis2(Target & target, double hour_angle, double wavelength, double dwavelength);
+    double  GetVis2(Target & target, UVPoint uv_coords, double wavelength, double dwavelength);
+
     UVPoint UVcoords(double hour_angle, double source_declination);
-//    oi_vis2_record GetVis2Record(Target & target, double hour_angle, vector<double> wavenumbers);
-    
+
     int GetStationID(int station_num);
 };
 

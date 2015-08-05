@@ -36,7 +36,7 @@ double NoiseModel_Tatulli2006::GetVis2Var(Array * array, Combiner * combiner, Sp
 	UV.Scale(spec_mode->mean_wavenumber[wavelength_num]);
 
 	// Secondly we compute the coherent flux and it's variance.  Start by looking up the squared visibility:
-	double vis2 = baseline->GetVis2(*target, UV);
+	double vis2 = baseline->GetVis2(*target, UV, spec_mode->mean_wavelength[wavelength_num], spec_mode->delta_wavelength[wavelength_num]);
 	// and the number of photons making it to the fringe section of the combiner
 	double c_photons = n_photons * combiner->GetFringeFluxFrac() * combiner->GetFringeThroughput() / combiner->GetNumSplits();
 	// now compute the coherent flux and it's variation:
@@ -65,15 +65,17 @@ double NoiseModel_Tatulli2006::GetT3PhaseVar(Array * array, Combiner * combiner,
 	Baseline * bl3 = triplet->GetBaseline(2);
 
 	// Scale the UV points
-	uv1.Scale(spec_mode->mean_wavenumber[wavelength_num]);
-	uv2.Scale(spec_mode->mean_wavenumber[wavelength_num]);
-	uv3.Scale(spec_mode->mean_wavenumber[wavelength_num]);
+	double wavelength = spec_mode->mean_wavelength[wavelength_num];
+	double dwavelength = spec_mode->delta_wavelength[wavelength_num];
+	uv1.Scale(1./wavelength);
+	uv2.Scale(1./wavelength);
+	uv3.Scale(1./wavelength);
 
 	// Now look up the visibilities and bispectra
-	double v_ij = bl1->GetVis2(*target, uv1);
-	double v_jk = bl2->GetVis2(*target, uv2);
-	double v_ik = bl3->GetVis2(*target, uv3);
-	double t3amp = triplet->GetT3Amp(*target, uv1, uv2, uv3);
+	double v_ij = bl1->GetVis2(*target, uv1, wavelength, dwavelength);
+	double v_jk = bl2->GetVis2(*target, uv2, wavelength, dwavelength);
+	double v_ik = bl3->GetVis2(*target, uv3, wavelength, dwavelength);
+	double t3amp = triplet->GetT3Amp(*target, uv1, uv2, uv3, wavelength, dwavelength);
 
 	double n_photons = this->NumPhotons(array, target, combiner, spec_mode, wavelength_num);
 	double c_photons = n_photons * combiner->GetFringeFluxFrac() * combiner->GetFringeThroughput() / combiner->GetNumSplits();

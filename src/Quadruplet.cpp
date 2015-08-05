@@ -51,13 +51,13 @@ int     Quadruplet::GetStationID(int station_num)
     return this->mStations[station_num]->GetIndex();
 }
 
-complex<double> Quadruplet::ComputeT4(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc)
+complex<double> Quadruplet::ComputeT4(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc, double wavelength, double dwavelength)
 {
     // Get the visibilities on the baselines AB, CD, AD, BC
-    complex<double> AB = mBaselines[0]->GetVisibility(target, uv_ab);
-    complex<double> CD = mBaselines[1]->GetVisibility(target, uv_cd);
-    complex<double> AD = mBaselines[2]->GetVisibility(target, uv_ad);
-    complex<double> BC = mBaselines[3]->GetVisibility(target, uv_bc);
+    complex<double> AB = mBaselines[0]->GetVisibility(target, uv_ab, wavelength, dwavelength);
+    complex<double> CD = mBaselines[1]->GetVisibility(target, uv_cd, wavelength, dwavelength);
+    complex<double> AD = mBaselines[2]->GetVisibility(target, uv_ad, wavelength, dwavelength);
+    complex<double> BC = mBaselines[3]->GetVisibility(target, uv_bc, wavelength, dwavelength);
 
     // Now compute the complex quad closure
     return ( AB * BC ) / ( AD * conj(BC) );
@@ -78,29 +78,29 @@ bool    Quadruplet::ContainsBaseline(string bl_name)
 }
 
 /// Returns the norm (amplitude) of the quad closures
-double  Quadruplet::GetT4Amp(Target & target,  UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc)
+double  Quadruplet::GetT4Amp(Target & target,  UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc, double wavelength,double dwavelength)
 {
-    complex<double> t4 = GetT4(target, uv_ab, uv_cd, uv_ad, uv_bc );
+    complex<double> t4 = GetT4(target, uv_ab, uv_cd, uv_ad, uv_bc, wavelength,dwavelength );
     return abs(t4);
 }
 
 // Wrapper function for the UV-coordinate taking versions.
-double  Quadruplet::GetT4Amp(Target & target, double hour_angle, double wavenumber)
+double  Quadruplet::GetT4Amp(Target & target, double hour_angle, double wavelength,double dwavelength)
 {
     UVPoint uv_ab = mBaselines[0]->UVcoords(hour_angle, target.declination);
-    uv_ab.Scale(wavenumber);
+    uv_ab.Scale(1./wavelength);
     UVPoint uv_cd = mBaselines[1]->UVcoords(hour_angle, target.declination);
-    uv_cd.Scale(wavenumber);
+    uv_cd.Scale(1./wavelength);
     UVPoint uv_ad = mBaselines[2]->UVcoords(hour_angle, target.declination);
-    uv_ad.Scale(wavenumber);
+    uv_ad.Scale(1./wavelength);
     UVPoint uv_bc = mBaselines[3]->UVcoords(hour_angle, target.declination);
-    uv_bc.Scale(wavenumber);
+    uv_bc.Scale(1./wavelength);
 
-    return GetT4Amp(target, uv_ab, uv_cd, uv_ad, uv_bc );
+    return GetT4Amp(target, uv_ab, uv_cd, uv_ad, uv_bc, wavelength, dwavelength );
 }
 
 // Returns the norm (amplitude) of the quad closure
-double  Quadruplet::GetT4AmpErr(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc)
+double  Quadruplet::GetT4AmpErr(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc,double wavelength,double dwavelength)
 {
     /// \bug Returns 0.001 by default
     return 0.001;
@@ -108,69 +108,69 @@ double  Quadruplet::GetT4AmpErr(Target & target, UVPoint uv_ab, UVPoint uv_cd, U
 
 
 // Wrapper function for the UV-coordinate taking versions.
-double  Quadruplet::GetT4AmpErr(Target & target, double hour_angle, double wavenumber)
+double  Quadruplet::GetT4AmpErr(Target & target, double hour_angle, double wavelength,double dwavelength)
 {
 
     UVPoint uv_ab = mBaselines[0]->UVcoords(hour_angle, target.declination);
-    uv_ab.Scale(wavenumber);
+    uv_ab.Scale(1./wavelength);
     UVPoint uv_cd = mBaselines[1]->UVcoords(hour_angle, target.declination);
-    uv_cd.Scale(wavenumber);
+    uv_cd.Scale(1./wavelength);
     UVPoint uv_ad = mBaselines[2]->UVcoords(hour_angle, target.declination);
-    uv_ad.Scale(wavenumber);
+    uv_ad.Scale(1./wavelength);
     UVPoint uv_bc = mBaselines[3]->UVcoords(hour_angle, target.declination);
-    uv_bc.Scale(wavenumber);
+    uv_bc.Scale(1./wavelength);
 
-     return GetT4AmpErr(target, uv_ab, uv_cd, uv_ad, uv_bc );
+     return GetT4AmpErr(target, uv_ab, uv_cd, uv_ad, uv_bc, wavelength, dwavelength );
 }
 
 
 // Wrapper function for the UV-coordinate taking versions.
-double  Quadruplet::GetT4Phi(Target & target, double hour_angle, double wavenumber)
+double  Quadruplet::GetT4Phi(Target & target, double hour_angle, double wavelength,double dwavelength)
 {
 
     UVPoint uv_ab = mBaselines[0]->UVcoords(hour_angle, target.declination);
-    uv_ab.Scale(wavenumber);
+    uv_ab.Scale(1./wavelength);
     UVPoint uv_cd = mBaselines[1]->UVcoords(hour_angle, target.declination);
-    uv_cd.Scale(wavenumber);
+    uv_cd.Scale(1./wavelength);
     UVPoint uv_ad = mBaselines[2]->UVcoords(hour_angle, target.declination);
-    uv_ad.Scale(wavenumber);
+    uv_ad.Scale(1./wavelength);
     UVPoint uv_bc = mBaselines[3]->UVcoords(hour_angle, target.declination);
-    uv_bc.Scale(wavenumber);
+    uv_bc.Scale(1./wavelength);
 
-    return GetT4Phi(target,  uv_ab, uv_cd, uv_ad, uv_bc );
+    return GetT4Phi(target,  uv_ab, uv_cd, uv_ad, uv_bc, wavelength, dwavelength );
 }
 
 /// Returns the argument (phase) of the quad closures
-double  Quadruplet::GetT4Phi(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc)
+double  Quadruplet::GetT4Phi(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc, double wavelength,double dwavelength)
 {
-    complex<double> t4 = GetT4(target,  uv_ab, uv_cd, uv_ad, uv_bc );
+    complex<double> t4 = GetT4(target,  uv_ab, uv_cd, uv_ad, uv_bc ,  wavelength, dwavelength );
     return arg(t4);
 }
 
 
 // Wrapper function for the UV-coordinate taking versions.
-double  Quadruplet::GetT4PhiErr(Target & target, double hour_angle, double wavenumber)
+double  Quadruplet::GetT4PhiErr(Target & target, double hour_angle, double wavelength,double dwavelength)
 {
     UVPoint uv_ab = mBaselines[0]->UVcoords(hour_angle, target.declination);
-    uv_ab.Scale(wavenumber);
+    uv_ab.Scale(1./wavelength);
     UVPoint uv_cd = mBaselines[1]->UVcoords(hour_angle, target.declination);
-    uv_cd.Scale(wavenumber);
+    uv_cd.Scale(1./wavelength);
     UVPoint uv_ad = mBaselines[2]->UVcoords(hour_angle, target.declination);
-    uv_ad.Scale(wavenumber);
+    uv_ad.Scale(1./wavelength);
     UVPoint uv_bc = mBaselines[3]->UVcoords(hour_angle, target.declination);
-    uv_bc.Scale(wavenumber);
+    uv_bc.Scale(1./wavelength);
 
-    return GetT4PhiErr(target,  uv_ab, uv_cd, uv_ad, uv_bc );
+    return GetT4PhiErr(target,  uv_ab, uv_cd, uv_ad, uv_bc, wavelength, dwavelength );
 }
 
-double  Quadruplet::GetT4PhiErr(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc)
+double  Quadruplet::GetT4PhiErr(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc, double wavelength,double dwavelength)
 {
     /// \bug Returns 0.001 by default.
     return 0.001;
 }
 
 // Computes the quad closures from the three baselines in this quadruplet.
-complex<double> Quadruplet::GetT4(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc)
+complex<double> Quadruplet::GetT4(Target & target, UVPoint uv_ab, UVPoint uv_cd, UVPoint uv_ad, UVPoint uv_bc, double wavelength,double dwavelength)
 {
   string hash_key = GetHashKey(target,  uv_ab, uv_cd, uv_ad, uv_bc);
   complex <double> t4(0.0, 0.0);
@@ -183,25 +183,25 @@ complex<double> Quadruplet::GetT4(Target & target, UVPoint uv_ab, UVPoint uv_cd,
   else
     {
         // The value did not exist in the hash table, we need to compute and store it.
-      t4 = ComputeT4(target, uv_ab, uv_cd, uv_ad, uv_bc);
+      t4 = ComputeT4(target, uv_ab, uv_cd, uv_ad, uv_bc, wavelength, dwavelength);
       mT4Values[hash_key] = t4;
     }
 
     return t4;
 }
 
-complex<double> Quadruplet::GetT4(Target & target, double hour_angle, double wavenumber)
+complex<double> Quadruplet::GetT4(Target & target, double hour_angle, double wavelength, double dwavelength)
 {
     UVPoint uv_ab = mBaselines[0]->UVcoords(hour_angle, target.declination);
-    uv_ab.Scale(wavenumber);
+    uv_ab.Scale(1./wavelength);
     UVPoint uv_cd = mBaselines[1]->UVcoords(hour_angle, target.declination);
-    uv_cd.Scale(wavenumber);
+    uv_cd.Scale(1./wavelength);
     UVPoint uv_ad = mBaselines[2]->UVcoords(hour_angle, target.declination);
-    uv_ad.Scale(wavenumber);
+    uv_ad.Scale(1./wavelength);
     UVPoint uv_bc = mBaselines[3]->UVcoords(hour_angle, target.declination);
-    uv_bc.Scale(wavenumber);
+    uv_bc.Scale(1./wavelength);
 
-    return GetT4(target, uv_ab, uv_cd, uv_ad, uv_bc);
+    return GetT4(target, uv_ab, uv_cd, uv_ad, uv_bc, wavelength,dwavelength);
 }
 
 // Computes a hash key from the source, hour angle, and wavenumber.

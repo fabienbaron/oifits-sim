@@ -26,9 +26,9 @@ class Triplet
 {
   private:
     Station     *   mStations[3];
-    Baseline    *   mBaselines[3]; 
+    Baseline    *   mBaselines[3];
     string name;
-    
+
     T3Hash     mT3Values; // Stores computed bispectrum values
     T3ErrHash  mT3Errors; // Stores computed/stored bispectrum error values.
 
@@ -36,32 +36,32 @@ class Triplet
     Triplet();
     Triplet(Array * array, Station * station1, Station * station2, Station * station3);
 
-  private:    
+  private:
 //    complex<double> ComputeT3Error(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
-    complex<double> ComputeT3(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
+    complex<double> ComputeT3(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac,double wavelength, double dwavelength);
     string  GetHashKey(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
-    
+
   public:
     string  GetName(void);
     bool    ContainsBaseline(string bl_name);
-    
-    complex<double> GetT3(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
-    complex<double> GetT3(Target & target, double hour_angle, double wavenumber);
-    
-    double  GetT3Amp(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
-    double  GetT3AmpErr(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
-    double  GetT3Phi(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
-    double  GetT3PhiErr(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
+
+    complex<double> GetT3(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac, double wavelength, double dwavelength);
+    complex<double> GetT3(Target & target, double hour_angle, double wavelength, double dwavelength);
+
+    double  GetT3Amp(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac, double wavelength, double dwavelength);
+    double  GetT3AmpErr(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac, double wavelength, double dwavelength);
+    double  GetT3Phi(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac, double wavelength, double dwavelength);
+    double  GetT3PhiErr(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac, double wavelength, double dwavelength);
 
     // Wrapper functions for the UV-coordinate taking versions.
-    double  GetT3Amp(Target & target, double hour_angle, double wavenumber);
-    double  GetT3AmpErr(Target & target, double hour_angle, double wavenumber);
-    double  GetT3Phi(Target & target, double hour_angle, double wavenumber);
-    double  GetT3PhiErr(Target & target, double hour_angle, double wavenumber);
+    double  GetT3Amp(Target & target, double hour_angle, double wavelength, double dwavelength);
+    double  GetT3AmpErr(Target & target, double hour_angle, double wavelength, double dwavelength);
+    double  GetT3Phi(Target & target, double hour_angle, double wavelength, double dwavelength);
+    double  GetT3PhiErr(Target & target, double hour_angle, double wavelength, double dwavelength);
 
-        
+
     int     GetStationID(int station_num);
-    
+
     Baseline * GetBaseline(int baseline_num);
 };
 

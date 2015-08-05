@@ -52,7 +52,7 @@ oi_vis2 Obs_OIFITS::GetVis2(Array * array, Combiner * combiner, SpectralMode * s
     int status = 0;
 
     double v2_err = 0;
-
+    double wavelength, dwavelength;
     // Open the input file as read-only data.
     fits_open_file(&fptr, this->mstrFilename.c_str(), READONLY, &status);
     if(status)
@@ -106,13 +106,15 @@ oi_vis2 Obs_OIFITS::GetVis2(Array * array, Combiner * combiner, SpectralMode * s
                 // Reset the UV coordinates
                 uv.u = input_record.ucoord;
                 uv.v = input_record.vcoord;
-                uv.Scale(spec_mode->mean_wavenumber[j]);
+                wavelength = spec_mode->mean_wavelength[j];
+                dwavelength = spec_mode->delta_wavelength[j];
+                uv.Scale(1./wavelength);
 
                 // Look up the V2 error from the input data file.
                 v2_err = input_record.vis2err[j];
 
                 // Simulate the visibility based on the source.
-                output->vis2data[j] = baseline->GetVis2(*target, uv) + v2_err * Rangauss(random_seed);
+                output->vis2data[j] = baseline->GetVis2(*target, uv, wavelength, dwavelength) + v2_err * Rangauss(random_seed);
                 // Copy the error from the input file.
                 output->vis2err[j] = v2_err;
 
@@ -191,6 +193,7 @@ oi_t3  Obs_OIFITS::GetT3(Array * array, Combiner * combiner, SpectralMode * spec
     UVPoint uv3;
     oi_t3_record input_record;
     Triplet * triplet;
+    double wavelength, dwavelength;
 
     do
     {
@@ -241,16 +244,19 @@ oi_t3  Obs_OIFITS::GetT3(Array * array, Combiner * combiner, SpectralMode * spec
                 uv3.v = uv1.v + uv2.v;
 
                 // Scale them
-                uv1.Scale(spec_mode->mean_wavenumber[j]);
-                uv2.Scale(spec_mode->mean_wavenumber[j]);
-                uv3.Scale(spec_mode->mean_wavenumber[j]);
+                wavelength = spec_mode->mean_wavelength[j];
+                dwavelength = spec_mode->delta_wavelength[j];
+
+                uv1.Scale(1./wavelength);
+                uv2.Scale(1./wavelength);
+                uv3.Scale(1./wavelength);
 
                 // Look up the error values:
                 amp_err = input_record.t3amperr[j];
                 phi_err = input_record.t3phierr[j];
 
                 // Compute the bispectra
-                bis = triplet->GetT3(*target, uv1, uv2, uv3);
+                bis = triplet->GetT3(*target, uv1, uv2, uv3, wavelength, dwavelength);
 
                 // Simulate the bispectrum's amplitude based on the source image
                 output->t3amp[j] = abs(bis) + amp_err * Rangauss(random_seed);
