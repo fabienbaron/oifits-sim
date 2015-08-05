@@ -59,6 +59,22 @@ string Baseline::GetName(void)
 }
 
 
+// Computes a hash key from the target, hour angle, and wavenumber.
+string  Baseline::GetHashKey(Target & target, UVPoint uv)
+{
+    /// \todo It may be necessary for the doubles coming into this function to be cast into some 
+    /// finite floating point format.
+    
+    /// \todo This function is in common with the Triplet class, need to factor this code.
+    
+    std::ostringstream sstream;
+    sstream << target.GetName() << '-' << uv.HashString();
+    std::string str = sstream.str();
+    return str;
+}
+
+
+
 /// Computes the complex visibility of the target at the specified UV point.
 /// \todo Switch the hash lookup over to a multihash instead of using strings?
 complex<double> Baseline::GetVisibility(Target & target, double hour_angle, double wavenumber)
@@ -88,70 +104,16 @@ complex<double> Baseline::GetVisibility(Target & target, UVPoint uv)
     return visibility;
 }
 
-
-// Computes a hash key from the target, hour angle, and wavenumber.
-string  Baseline::GetHashKey(Target & target, UVPoint uv)
+double  Baseline::GetVis2(Target & target, double hour_angle, double wavenumber)
 {
-    /// \todo It may be necessary for the doubles coming into this function to be cast into some 
-    /// finite floating point format.
-    
-    /// \todo This function is in common with the Triplet class, need to factor this code.
-    
-    std::ostringstream sstream;
-    sstream << target.GetName() << '-' << uv.HashString();
-    std::string str = sstream.str();
-    return str;
+    complex<double> vis = this->GetVisibility(target, hour_angle, wavenumber);
+    return norm(vis);
 }
 
-/// Computes the error in the visibility
-/// \todo Implement computations of error in visibility.  This function returns an error of zero for now.
-double Baseline::ComputeVis2Error(Target & target, UVPoint uv)
+double Baseline::GetVis2(Target & target, UVPoint uv)
 {
-    return 0.001;
-}
-
-/// Returns the error in the visibility assoicated with this target, hour angle, and wavenumber.
-double Baseline::GetVis2Error(Target & target, double hour_angle, double wavenumber)
-{
-     // First look up the UV coordinates
-    UVPoint uv = UVcoords(hour_angle, target.declination);
-    uv.Scale(wavenumber);
-    return GetVis2Error(target, uv);
-}
-
-double Baseline::GetVis2Error(Target & target, UVPoint uv)
-{
-    string hash_key = GetHashKey(target, uv);
-    double vis_error = 0.0;
-    
-    // First try looking up the value in the hash table:
-    if(mVis2Errors.find(hash_key) != mVis2Errors.end())
-    {
-        vis_error = mVis2Errors[hash_key];
-    }
-    else
-    {
-        vis_error = ComputeVis2Error(target, uv);
-        mVis2Errors[hash_key] = vis_error;
-    }
-    
-    return vis_error;
-}
-
-/// Sets the visibility error for the given target, hour angle and wavenumber.
-/// Note: It is intended that this function is used to set the error from existing OIFITS data files.
-void    Baseline::SetVis2Error(Target & target, double hour_angle, double wavenumber, double vis2error)
-{
-     UVPoint uv = UVcoords(hour_angle, target.declination);
-     uv.Scale(wavenumber);
-     SetVis2Error(target, uv, vis2error);
-}
-
-/// Sets the visibility squared error based upon the target and UV coordiantes.
-void    Baseline::SetVis2Error(Target & target, UVPoint uv, double vis2error)
-{
-    string hash_key = GetHashKey(target, uv);
-    mVis2Errors[hash_key] = vis2error;
+    complex<double> vis = this->GetVisibility(target, uv);
+    return norm(vis);   
 }
 
 /// Computes the visibility at the specified UV point.
@@ -183,71 +145,11 @@ complex<double> Baseline::ComputeVisibility(Target & target, UVPoint uv)
     return visibility;
 }
 
-/// Returns an OIFITS oi_vis2_record for the given target, hour angle and wavenumber
-//oi_vis2_record Baseline::GetVis2Record(Target & target, double hour_angle, <double> wavenumbers)
-//{
-//    // init local vars
-//    complex<double> vis;
-//    complex<double> vis_err;
-//    double vis2;
-//    double vis2_err;
-
-//    // Finally assemble the oi_vis2_record:
-//    oi_vis2_record record;
-//    record.target_id = target.GetTargetID();
-//    
-//    /// \bug The time and MJD recorded here are nonsense values.
-//    record.time = 0;
-//    record.mjd = 0.0;
-//    
-//    /// \bug Integration time is set to 1-second by default regardless of instrument setting.
-//    record.int_time = 1;
-//    
-//    // Get the UV point at the mid-point of the data.
-//    UVPoint uv = UVcoords(hour_angle, target.declination, wavenumbers[wavenumbers.size()/2]);
-//    
-//    record.ucoord = uv.u;
-//    record.vcoord = uv.v;
-//    record.sta_index[0] = this->indicies[0];
-//    record.sta_index[1] = this->indicies[1];
-
-//    // Now write out the 
-//    for(unsigned int i = 0; i < wavenumbers.size(); i++)
-//    {
-//        // First get the visibility and error.
-//        vis = GetVisibility(target, hour_angle, wavenumbers[i]);
-//        vis_err = GetVisError(target, hour_angle, wavenumbers[i]);
-//        
-//        // Now compute the powerspectra for this point:
-//        vis2 = norm(vis);
-//        vis2_err = norm(vis_err);
-
-//        record.vis2data[i] = vis2;
-//        record.vis2err[i] = vis2_err;
-//        record.flag[i] = FALSE;
-//    }
-
-//    return record;
-//}
-
 // Returns the station ID of stations 0 or 1
 int Baseline::GetStationID(int num)
 {
     /// \todo This should probably query the telesocopes directly.
     return this->indicies[num];
-}
-
-double  Baseline::GetVis2(Target & target, double hour_angle, double wavenumber)
-{
-    complex<double> vis = this->GetVisibility(target, hour_angle, wavenumber);
-    
-    return norm(vis);
-}
-
-double Baseline::GetVis2(Target & target, UVPoint uv)
-{
-    complex<double> vis = this->GetVisibility(target, uv);
-    return norm(vis);   
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -288,42 +190,3 @@ BaselineHash ComputeBaselineHash(vector<Baseline> & baselines)
     
     return hash;
 }
-
-
-/// \todo Rewrite this function to work with the new class definition.
-//double Baseline::Geometric_OPD(double hour_angle, double target_declination,
-//                               double array_latitude)
-//{
-//    double trad, drad, lrad;
-
-//    trad = hour_angle * PI / (12.0 * 3600.);
-//    drad = target_declination * PI / 180.0;
-//    lrad = array_latitude * PI / 180.0;
-//    Row < double >XYZ(3);
-
-//    /// \todo This needs to be updated to use the z-coordinate of the telescopes.  See
-//    /// functions above for more information.
-//    XYZ[0] = -this->y * sin(lrad);
-//    XYZ[1] = this->x;
-//    XYZ[2] = this->y * cos(lrad);
-
-//    double sin_alt, altitude, azimuth;
-
-//    // Compute the altitude
-//    sin_alt = cos(lrad) * cos(drad) * cos(trad) + sin(lrad) * sin(drad);
-//    altitude = atan(sin_alt / sqrt(1 - sin_alt * sin_alt));
-
-//    // Compute the azimuth
-//    azimuth = atan(sin(trad) * cos(drad) / (cos(lrad) * sin(drad) - cos(trad)
-//                                            * cos(drad) * sin(lrad)));
-
-//    // Compute the unit vector
-//    Row < double >s(3);
-
-//    s[0] = cos(altitude) * cos(azimuth);
-//    s[1] = cos(altitude) * sin(azimuth);
-//    s[2] = sin(altitude);
-
-//    // Return the OPD for the baseline
-//    return s[0] * XYZ[0] + s[1] * XYZ[1] + s[2] * XYZ[2];
-//}

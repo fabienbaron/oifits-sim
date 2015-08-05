@@ -283,11 +283,11 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		    // Get the complex visibility, and its error.
 		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavenumber);
 		    // First save the amplitudes
+		    vis.record[i].visamperr[j] = 0;
 		    vis.record[i].visamp[j] = abs(cvis);
-		    vis.record[i].visamperr[j] = 0.;
 		    // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		    vis.record[i].visphi[j] = arg(cvis);
 		    vis.record[i].visphierr[j] = 0.;
+		    vis.record[i].visphi[j] = arg(cvis) + vis.record[i].visphierr[j] * Rangauss(random_seed);;
 		    vis.record[i].flag[j] = FALSE;
 		  }
 
@@ -433,8 +433,8 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 		  t3.record[i].t3amperr[j] = sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
 		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);		
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t3.record[i].t3phi[j] = (arg(bis) + phi_err * Rangauss(random_seed)) * 180 / PI;
-		  t3.record[i].t3phierr[j] = phi_err * 180 / PI;
+		  t3.record[i].t3phi[j] = (arg(bis) + phi_err * Rangauss(random_seed)) * 180. / PI;
+		  t3.record[i].t3phierr[j] = phi_err * 180. / PI;
 		  t3.record[i].flag[j] = FALSE;
 		}
 
@@ -515,8 +515,8 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		  t4.record[i].t4amp[j] = abs(quad_clos);
 		  t4.record[i].t4amperr[j] = sqrt(abs(quad_clos) * abs(quad_clos) * phi_err * phi_err);
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t4.record[i].t4phi[j] = (arg(quad_clos) + phi_err * Rangauss(random_seed)) * 180 / PI;
-		  t4.record[i].t4phierr[j] = phi_err * 180 / PI;
+		  t4.record[i].t4phi[j] = (arg(quad_clos) + phi_err * Rangauss(random_seed)) * 180. / PI;
+		  t4.record[i].t4phierr[j] = phi_err * 180. / PI;
 		  t4.record[i].flag[j] = FALSE;
 		}
 
