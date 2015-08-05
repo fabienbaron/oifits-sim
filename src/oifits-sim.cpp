@@ -1,8 +1,7 @@
 /*
  * oifits-sim.cpp
  *
- *  Created on: Apr 8, 2011
- *      Author: bkloppenborg
+ *      Authors: bkloppenborg, fbaron
  */
 #include "oifits-sim.h"
 
@@ -258,13 +257,20 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     if (type == HOUR_ANGLE || type == DESCRIPTIVE)
     {
       Obs_HA *observation = dynamic_cast<Obs_HA *>(observation_list.back());
-      //printf("Simulating Observation at HA %f \n", observation->GetHA(target->right_ascension));
+      printf("Simulating Observation at HA %f \n", observation->GetHA(target->right_ascension));
 
     }
     else    //(type == OIFITS)
     {
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
     }
+
+    {
+      oi_vis vistable = observation->GetVis(array, combiner, spec, target, noisemodel, random_seed);
+      write_oi_vis(fptr, vistable, 1, &status);
+      free_oi_vis(&vistable);
+    }
+
 
     {
       oi_vis2 vis2table = observation->GetVis2(array, combiner, spec, target, noisemodel, random_seed);

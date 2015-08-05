@@ -27,6 +27,15 @@ Obs_OIFITS::Obs_OIFITS(string filename)
     this->mbHasTriplets = true;
 }
 
+
+oi_vis Obs_OIFITS::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+{
+
+}
+
+
+
+
 //
 /// \todo This is a really hacky solution.  Come up with a better method.  Perhaps use
 /// the Baseline::GetOI_Vis2_record routine?
@@ -145,7 +154,7 @@ oi_vis2 Obs_OIFITS::GetVis2(Array * array, Combiner * combiner, SpectralMode * s
 	    outvis2->record[i] = *vis2_data.back();
 
 	    // free memory and pop
-	    delete vis2_data.back();
+	    free(vis2_data.back());
 	    vis2_data.pop_back();
 	}
 
@@ -287,7 +296,7 @@ oi_t3  Obs_OIFITS::GetT3(Array * array, Combiner * combiner, SpectralMode * spec
 	    outt3->record[i] = *t3_data.back();
 
 	    // Free memory and pop
-	    //delete t3_data.back();
+	    free(t3_data.back());
 	    t3_data.pop_back();
 	}
 

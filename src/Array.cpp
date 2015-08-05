@@ -99,7 +99,7 @@ void Array::ImportFile(string filename, string comment_chars)
         		this->latitude = atof(results[1].c_str());
 
         		// Convert to radians:
-                this->latitude *= PI / 180;
+			this->latitude *= PI / 180;
         		n_params += 1;
         	}
         	catch(...)
@@ -115,7 +115,7 @@ void Array::ImportFile(string filename, string comment_chars)
         		this->longitude = atof(results[1].c_str());
 
         		// Convert to radians:
-                this->longitude *= PI / 180;
+			this->longitude *= PI / 180;
         		n_params += 1;
         	}
         	catch(...)
@@ -176,7 +176,7 @@ void Array::ImportFile(string filename, string comment_chars)
         	try
         	{
         		// Import the wind speed.  In the input parameter file it is in m/s
-        		// all variables are stored in MKS units, so no conversion is necessary.
+        		// all variables are stored in SI units, so no conversion is necessary.
         		this->wind_speed = atof(results[1].c_str());
         		n_params += 1;
         	}

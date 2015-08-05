@@ -22,6 +22,7 @@ class Obs_HA : public Observation
     static vector <Observation*> ReadObservation_HA(Array * array, vector < string > lines, int i);
     static vector <Observation*> ReadObservation_Descriptive(Array * array, vector < string > lines, int i);
 
+    oi_vis  GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
     oi_vis2 GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
     oi_t3   GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
     oi_t4   GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);

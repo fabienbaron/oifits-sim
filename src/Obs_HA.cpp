@@ -229,7 +229,72 @@ vector <Observation*> Obs_HA::ReadObservation_Descriptive(Array * array, vector 
     return observations;
 }
 
+/// Create an OIFITS-compliant vis table for this observation.
+oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+{
+    oi_vis vis;
+    int nvis = this->mBaselines.size();
+    int nwave = spec_mode->mean_wavenumber.size();
+    string arrname = array->GetArrayName();
+    string ins_name = spec_mode->spec_mode;
+    complex<double> cvis;
+    double phi_err;
+    double wavenumber;
+    double ra = target->right_ascension;
+    double dec = target->declination;
 
+    UVPoint uv;
+	vis.record = (oi_vis_record *) malloc(nvis * sizeof(oi_vis_record));
+	for (int i = 0; i < nvis; i++)
+	{
+		vis.record[i].visamp = (double *) malloc(nwave * sizeof(double));
+		vis.record[i].visamperr = (double *) malloc(nwave * sizeof(double));
+		vis.record[i].visphi = (double *) malloc(nwave * sizeof(double));
+		vis.record[i].visphierr = (double *) malloc(nwave * sizeof(double));
+		vis.record[i].flag = (char *) malloc(nwave * sizeof(char));
+	}
+	vis.revision = 1;
+	strncpy(vis.date_obs, "2014-01-01", FLEN_VALUE);
+	strncpy(vis.arrname, arrname.c_str(), FLEN_VALUE);
+	strncpy(vis.insname, ins_name.c_str(), FLEN_VALUE);
+	vis.numrec = nvis;
+	vis.nwave = nwave;
+
+	// Now copy the data into vis records:
+	for (int i = 0; i < nvis; i++)
+	{
+		vis.record[i].target_id = target->GetTargetID();
+		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
+		vis.record[i].time = this->mHA * 3600.;
+		vis.record[i].mjd = this->mJD;
+		/// \bug Integration time set to 10 seconds by default.
+	        vis.record[i].int_time = 10;
+
+		// Get the UV coordinates for the AB and BC baselines
+		uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
+		vis.record[i].ucoord = uv.u;
+		vis.record[i].vcoord = uv.v;
+		vis.record[i].sta_index[0] = this->mBaselines[i]->GetStationID(0);
+		vis.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
+		for(int j = 0; j < nwave; j++)
+		  {
+		    wavenumber = spec_mode->mean_wavenumber[j];
+		    
+		    // Get the complex visibility, and its error.
+		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavenumber);
+		    // First save the amplitudes
+		    vis.record[i].visamp[j] = abs(cvis);
+		    vis.record[i].visamperr[j] = 0.;
+		    // Now save the phases.  Remember, the phase is in degrees rather than radians.
+		    vis.record[i].visphi[j] = arg(cvis);
+		    vis.record[i].visphierr[j] = 0.;
+		    vis.record[i].flag[j] = FALSE;
+		  }
+
+	}
+
+	return vis;
+}
 
 /// Creates an OIFITS oi_vis2 compliant entry for this observation.
 oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
@@ -289,7 +354,7 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 		    // look up the present wavenumber, and then find the data
 		    wavenumber = spec_mode->mean_wavenumber[iwave];
 
-		    // Get the squared visibility, and it's error.
+		    // Get the squared visibility, and its error.
 		    v2 = this->mBaselines[i]->GetVis2(*target, mHA, wavenumber);
 		    v2_err = noisemodel->GetVis2Var(array, combiner, spec_mode, target, this->mBaselines[i], uv, iwave);
 
@@ -302,6 +367,7 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 
 	return vis2;
 }
+
 
 /// Create an OIFITS-compliant t3 table for this observation.
 oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
@@ -359,19 +425,17 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 
 		for(int j = 0; j < nwave; j++)
 		{
-			wavenumber = spec_mode->mean_wavenumber[j];
-		    bis = mTriplets[i]->GetT3(*target, this->mHA, wavenumber);
-		    phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
-
-			// assume circular noise cloud
-
-		    // First save the amplitudes
-			t3.record[i].t3amp[j] = abs(bis);
-			t3.record[i].t3amperr[j] = sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
-			// Now save the phases.  Remember, the phase is in degrees rather than radians.
-			t3.record[i].t3phi[j] = (arg(bis) + phi_err * Rangauss(random_seed)) * 180 / PI;
-			t3.record[i].t3phierr[j] = phi_err * 180 / PI;
-			t3.record[i].flag[j] = FALSE;
+		  wavenumber = spec_mode->mean_wavenumber[j];
+		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavenumber);
+		  phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
+		  
+		  // First save the amplitudes
+		  t3.record[i].t3amperr[j] = sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
+		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);		
+		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
+		  t3.record[i].t3phi[j] = (arg(bis) + phi_err * Rangauss(random_seed)) * 180 / PI;
+		  t3.record[i].t3phierr[j] = phi_err * 180 / PI;
+		  t3.record[i].flag[j] = FALSE;
 		}
 
 	}

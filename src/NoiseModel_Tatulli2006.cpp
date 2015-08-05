@@ -167,7 +167,10 @@ double NoiseModel_Tatulli2006::ComputeT3PhVar(int nt[7], double nph[7], double v
 	temp *= 1. / (2. * t3amp * t3amp);
 
 	if(temp < 0)
-		printf("whoops.\n");
+	  {
+		printf("Error, Negative T3PhVar.\n");
+		temp = 0.0001;
+	  }
 
 	return temp;
 }
