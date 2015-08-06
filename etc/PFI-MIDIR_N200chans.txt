@@ -1,7 +1,7 @@
 # File describing the spectral bands for PFI 200 channels
 
 combiner = PFI-MIDIR
-mode = N_BAND
+mode = N_200
 # 9 to 10 microns, 0.05 micron width
 9.000000E-06  5.000000E-09
 9.005000E-06  5.000000E-09

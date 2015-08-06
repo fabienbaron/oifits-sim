@@ -1,6 +1,6 @@
 # File describing the spectral bands for PFI broadband.
 
 combiner = PFI-MIDIR
-mode = N_BAND
+mode = N_BROAD
 # 9 to 10 microns, 0.05 micron width
 9.500000E-06  5.000000E-07

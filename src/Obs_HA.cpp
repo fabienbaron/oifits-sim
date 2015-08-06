@@ -279,7 +279,7 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		for(int j = 0; j < nwave; j++)
 		  {
 		    wavelength = spec_mode->mean_wavelength[j];
-            dwavelength = spec_mode->delta_wavelength[j];
+		    dwavelength = spec_mode->delta_wavelength[j];
 		    // Get the complex visibility, and its error.
 		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavelength, dwavelength);
 		    // First save the amplitudes
