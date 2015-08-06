@@ -3,12 +3,6 @@ cmake_minimum_required(VERSION 2.8)
 project (oifits-sim)
 
 set(CMAKE_BUILD_TYPE DEBUG)
-
-#set(CMAKE_CXX_FLAGS "-Wall -Wcast-align -Wcast-qual -Wextra -Wfloat-equal -Wredundant-decls -Wshadow -Wwrite-strings -pedantic -Wno-long-long")
-
-#set(CMAKE_CXX_FLAGS "-Wall -pedantic")
-
-#set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -ggdb -fomit-frame-pointer")
 
 find_package(GLIB2 REQUIRED)

@@ -283,11 +283,11 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		    // Get the complex visibility, and its error.
 		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavelength, dwavelength);
 		    // First save the amplitudes
-		    vis.record[i].visamperr[j] = 0.1;
-		    vis.record[i].visamp[j] = 1.;//abs(cvis) + vis.record[i].visamperr[j] * Rangauss(random_seed);
+		    vis.record[i].visamperr[j] = 0.01;
+		    vis.record[i].visamp[j] = abs(cvis) + vis.record[i].visamperr[j] * Rangauss(random_seed);
 		    // Now save the phases.  Remember, the phase is in degrees rather than radians.
 		    vis.record[i].visphierr[j] = 0.1; //*180./PI
-		    vis.record[i].visphi[j] = 1.;//arg(cvis) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
+		    vis.record[i].visphi[j] = arg(cvis) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
 		    vis.record[i].flag[j] = FALSE;
 		  }
 
@@ -433,10 +433,10 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 		  phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
 
 		  // First save the amplitudes
-		  t3.record[i].t3amperr[j] = 1.;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
+		  t3.record[i].t3amperr[j] = .1;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
 		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t3.record[i].t3phierr[j] = 5.; //phi_err * 180. / PI;
+		  t3.record[i].t3phierr[j] = 0.1; //phi_err * 180. / PI;
 		  t3.record[i].t3phi[j] = arg(bis) * 180. / PI + t3.record[i].t3phierr[j] * Rangauss(random_seed);
 		  t3.record[i].flag[j] = FALSE;
 		}

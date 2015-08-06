@@ -1,4 +1,4 @@
-# File describing the spectral bands for MIRC's Low resolution H-band mode.
+# File describing the spectral bands for PFI 200 channels
 
 combiner = PFI-MIDIR
 mode = N_BAND

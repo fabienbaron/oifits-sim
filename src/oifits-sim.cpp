@@ -271,7 +271,6 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
       free_oi_vis(&vistable);
     }
 
-
     {
       oi_vis2 vis2table = observation->GetVis2(array, combiner, spec, target, noisemodel, random_seed);
       write_oi_vis2(fptr, vis2table, 1, &status);
@@ -285,12 +284,12 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
       free_oi_t3(&t3table);
     }
 
-    if (observation->HasQuadruplets())
-    {
-      oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_t4(fptr, t4table, 1, &status);
-      free_oi_t4(&t4table);
-    }
+    //    if (observation->HasQuadruplets())
+    // {
+    //  oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
+    //  write_oi_t4(fptr, t4table, 1, &status);
+    //  free_oi_t4(&t4table);
+    // }
 
 
     // All done with this observation object.  Pop it off the vector and free memory.
