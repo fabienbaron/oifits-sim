@@ -7,6 +7,7 @@
 #include "Target.h"
 #include "NoiseModel.h"
 
+
 Obs_HA::Obs_HA(Array * array, vector<Station*> stations, string exclude_baselines)
 {
     this->mArray = array;
@@ -244,56 +245,58 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
     double dec = target->declination;
 
     UVPoint uv;
-	vis.record = (oi_vis_record *) malloc(nvis * sizeof(oi_vis_record));
-	for (int i = 0; i < nvis; i++)
-	{
-		vis.record[i].visamp = (double *) malloc(nwave * sizeof(double));
-		vis.record[i].visamperr = (double *) malloc(nwave * sizeof(double));
-		vis.record[i].visphi = (double *) malloc(nwave * sizeof(double));
-		vis.record[i].visphierr = (double *) malloc(nwave * sizeof(double));
-		vis.record[i].flag = (char *) malloc(nwave * sizeof(char));
-	}
-	vis.revision = 1;
-	strncpy(vis.date_obs, "2014-01-01", FLEN_VALUE);
-	strncpy(vis.arrname, arrname.c_str(), FLEN_VALUE);
-	strncpy(vis.insname, ins_name.c_str(), FLEN_VALUE);
-	vis.numrec = nvis;
-	vis.nwave = nwave;
-
-	// Now copy the data into vis records:
-	for (int i = 0; i < nvis; i++)
-	{
-		vis.record[i].target_id = target->GetTargetID();
-		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
-		vis.record[i].time = this->mHA * 3600.;
-		vis.record[i].mjd = this->mJD;
-		/// \bug Integration time set to 10 seconds by default.
-	        vis.record[i].int_time = 10;
-
-		// Get the UV coordinates for the AB and BC baselines
-		uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
-		vis.record[i].ucoord = uv.u;
-		vis.record[i].vcoord = uv.v;
-		vis.record[i].sta_index[0] = this->mBaselines[i]->GetStationID(0);
-		vis.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
-		for(int j = 0; j < nwave; j++)
-		  {
-		    wavelength = spec_mode->mean_wavelength[j];
-		    dwavelength = spec_mode->delta_wavelength[j];
-		    // Get the complex visibility, and its error.
-		    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavelength, dwavelength);
-		    // First save the amplitudes
-		    vis.record[i].visamperr[j] = 0.01;
-		    vis.record[i].visamp[j] = abs(cvis) + vis.record[i].visamperr[j] * Rangauss(random_seed);
-		    // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		    vis.record[i].visphierr[j] = 0.1; //*180./PI
-		    vis.record[i].visphi[j] = arg(cvis) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
-		    vis.record[i].flag[j] = FALSE;
-		  }
-
-	}
-
-	return vis;
+    vis.record = (oi_vis_record *) malloc(nvis * sizeof(oi_vis_record));
+    for (int i = 0; i < nvis; i++)
+      {
+	vis.record[i].visamp = (double *) malloc(nwave * sizeof(double));
+	vis.record[i].visamperr = (double *) malloc(nwave * sizeof(double));
+	vis.record[i].visphi = (double *) malloc(nwave * sizeof(double));
+	vis.record[i].visphierr = (double *) malloc(nwave * sizeof(double));
+	vis.record[i].flag = (char *) malloc(nwave * sizeof(char));
+      }
+    vis.revision = 1;
+    strncpy(vis.date_obs, "2014-01-01", FLEN_VALUE);
+    strncpy(vis.arrname, arrname.c_str(), FLEN_VALUE);
+    strncpy(vis.insname, ins_name.c_str(), FLEN_VALUE);
+    vis.numrec = nvis;
+    vis.nwave = nwave;
+    
+    // Now copy the data into vis records:
+    for (int i = 0; i < nvis; i++)
+      {
+	if(i%50 ==0) printf("Generating VIS: %d / %d \n", i, nvis);
+	vis.record[i].target_id = target->GetTargetID();
+	/// \bug The time is set to the HA in sec (for consistency with vis_sim)
+	vis.record[i].time = this->mHA * 3600.;
+	vis.record[i].mjd = this->mJD;
+	/// \bug Integration time set to 10 seconds by default.
+	vis.record[i].int_time = 10;
+	
+	// Get the UV coordinates for the AB and BC baselines
+	uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
+	vis.record[i].ucoord = uv.u;
+	vis.record[i].vcoord = uv.v;
+	vis.record[i].sta_index[0] = this->mBaselines[i]->GetStationID(0);
+	vis.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
+	for(int j = 0; j < nwave; j++)
+	  {
+	    if(j%10 ==0) printf("Wav: %d / %d \r", j+1, nwave);
+	    wavelength = spec_mode->mean_wavelength[j];
+	    dwavelength = spec_mode->delta_wavelength[j];
+	    // Get the complex visibility, and its error.
+	    cvis = this->mBaselines[i]->GetVisibility(*target, mHA, wavelength, dwavelength);
+	    // First save the amplitudes
+	    vis.record[i].visamperr[j] = 0.002;
+	    vis.record[i].visamp[j] = abs(cvis) + vis.record[i].visamperr[j] * Rangauss(random_seed);
+	    // Now save the phases.  Remember, the phase is in degrees rather than radians.
+	    vis.record[i].visphierr[j] = 0.02; //*180./PI
+	    vis.record[i].visphi[j] = arg(cvis) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
+	    vis.record[i].flag[j] = FALSE;
+	  }
+	
+      }
+  	printf("\n");  
+    return vis;
 }
 
 /// Creates an OIFITS oi_vis2 compliant entry for this observation.
@@ -334,38 +337,39 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 	vis2.nwave = nwave;
 	for (int i = 0; i < npow; i++)
 	{
-		vis2.record[i].target_id = target->GetTargetID();
-		/// \bug The time is set to the HA in sec
-		vis2.record[i].time = this->GetHA(ra) * 3600.;
-		vis2.record[i].mjd = this->mJD;
-		/// \bug The integration time is set to 1 second by default.
-		vis2.record[i].int_time = 1;
-
-		// Compute the UV coordinates and record the station positions:
-		uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
-		vis2.record[i].ucoord = uv.u;
-		vis2.record[i].vcoord = uv.v;
-		vis2.record[i].sta_index[0] = this->mBaselines[i]->GetStationID(0);
-		vis2.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
-
-		// Now compute the individual visibilities and uncertainties
-		for (iwave = 0; iwave < nwave; iwave++)
-		{
-		    // look up the present wavenumber, and then find the data
-            wavelength = spec_mode->mean_wavelength[iwave];
-            dwavelength = spec_mode->delta_wavelength[iwave];
-
-		    // Get the squared visibility, and its error.
-		    v2 = this->mBaselines[i]->GetVis2(*target, mHA, wavelength, dwavelength);
-		    v2_err = noisemodel->GetVis2Var(array, combiner, spec_mode, target, this->mBaselines[i], uv, iwave);
-
-		    // Put out the visibility
-			vis2.record[i].vis2err[iwave] = 1.; //v2_err;
-			vis2.record[i].vis2data[iwave] = v2 + vis2.record[i].vis2err[iwave] * Rangauss(random_seed);
-			vis2.record[i].flag[iwave] = FALSE;
-		}
+	  if(i%50 ==0) printf("Generating V2: %d / %d \n", i, npow);
+	  vis2.record[i].target_id = target->GetTargetID();
+	  /// \bug The time is set to the HA in sec
+	  vis2.record[i].time = this->GetHA(ra) * 3600.;
+	  vis2.record[i].mjd = this->mJD;
+	  /// \bug The integration time is set to 1 second by default.
+	  vis2.record[i].int_time = 1;
+	  
+	  // Compute the UV coordinates and record the station positions:
+	  uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
+	  vis2.record[i].ucoord = uv.u;
+	  vis2.record[i].vcoord = uv.v;
+	  vis2.record[i].sta_index[0] = this->mBaselines[i]->GetStationID(0);
+	  vis2.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
+	  
+	  // Now compute the individual visibilities and uncertainties
+	  for (iwave = 0; iwave < nwave; iwave++)
+	    {
+	      // look up the present wavenumber, and then find the data
+	      wavelength = spec_mode->mean_wavelength[iwave];
+	      dwavelength = spec_mode->delta_wavelength[iwave];
+	      
+	      // Get the squared visibility, and its error.
+	      v2 = this->mBaselines[i]->GetVis2(*target, mHA, wavelength, dwavelength);
+	      //v2_err = noisemodel->GetVis2Var(array, combiner, spec_mode, target, this->mBaselines[i], uv, iwave);
+	      
+	      // Put out the visibility
+	      vis2.record[i].vis2err[iwave] = 0.001; //v2_err;
+	      vis2.record[i].vis2data[iwave] = v2 + vis2.record[i].vis2err[iwave] * Rangauss(random_seed);
+	      vis2.record[i].flag[iwave] = FALSE;
+	    }
 	}
-
+	printf("\n");
 	return vis2;
 }
 
@@ -404,7 +408,7 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 	// Now copy the data into t3 records:
 	for (int i = 0; i < nTriplets; i++)
 	{
-
+	  if(i%50 == 0) printf("Generating T3: %d / %d \n", i, nTriplets);
 		t3.record[i].target_id = target->GetTargetID();
 		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
 		t3.record[i].time = this->mHA * 3600.;
@@ -427,22 +431,22 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 		for(int j = 0; j < nwave; j++)
 		{
 		  wavelength = spec_mode->mean_wavelength[j];
-          dwavelength = spec_mode->delta_wavelength[j];
-
+		  dwavelength = spec_mode->delta_wavelength[j];
+		  
 		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavelength, dwavelength);
-		  phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
-
+		  //phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
+		  
 		  // First save the amplitudes
-		  t3.record[i].t3amperr[j] = .1;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
+		  t3.record[i].t3amperr[j] = .0001;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
 		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t3.record[i].t3phierr[j] = 0.1; //phi_err * 180. / PI;
-		  t3.record[i].t3phi[j] = arg(bis) * 180. / PI + t3.record[i].t3phierr[j] * Rangauss(random_seed);
+		  t3.record[i].t3phierr[j] = 0.000000001; //phi_err * 180. / PI;
+		  t3.record[i].t3phi[j] = arg(bis) * 180. / PI; //+ t3.record[i].t3phierr[j] * Rangauss(random_seed);
 		  t3.record[i].flag[j] = FALSE;
 		}
 
 	}
-
+	printf("\n");
 	return t3;
 }
 

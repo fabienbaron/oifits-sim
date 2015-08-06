@@ -10,6 +10,8 @@
 #include "Station.h"
 #include "Target.h"
 
+//#include <omp.h>
+
 Baseline::Baseline()
 {
     this->xyz[0] = this->xyz[1] = this->xyz[2] = 0;
@@ -91,15 +93,15 @@ complex<double> Baseline::GetVisibility(Target & target, UVPoint uv, double wave
     string hash_key = GetHashKey(target, uv);
     complex <double> visibility(0.0, 0.0);
 
-    if(mVisValues.find(hash_key) != mVisValues.end())
-    {
+        if(mVisValues.find(hash_key) != mVisValues.end())
+      {
         visibility = mVisValues[hash_key];
-    }
-    else
-    {
+      }
+      else
+      {
         visibility = ComputeVisibility(target, uv, wavelength, dwavelength);
-        mVisValues[hash_key] = visibility;
-    }
+	     mVisValues[hash_key] = visibility;
+      }
 
     return visibility;
 }
@@ -121,6 +123,7 @@ double Baseline::GetVis2(Target & target, UVPoint uv, double wavelength, double 
 /// Note, uv should already be scaled by wavenumber.
 complex<double> Baseline::ComputeVisibility(Target & target, UVPoint uv, double wavelength, double dwavelength)
 {
+
     complex <double> visibility(0.0, 0.0);
 
     // Point target
@@ -132,17 +135,27 @@ complex<double> Baseline::ComputeVisibility(Target & target, UVPoint uv, double 
     {
         int nx = target.image.GetRows();
         int ny = target.image.GetCols();
-        for (int ii = 0; ii < nx; ii++)
-        {
-            for (int jj = 0; jj < ny; jj++)
-            {
-            visibility += target.image[ii][jj]
-                        * sinc( dwavelength/wavelength * (uv.u * (double)(ii - nx / 2 ) - uv.v * (double)(jj - ny / 2)) * target.pixellation * milliarcsec)
-                        * polar(1., 2.0 * PI * target.pixellation * milliarcsec * (uv.u * (double)(ii - nx / 2 ) - uv.v * (double)(jj - ny / 2)));
-            }
-        }
-    }
 
+
+	complex<double>* xtransform = new complex<double>[nx];
+	complex<double>* ytransform = new complex<double>[ny];
+	for (int ii = 0; ii < nx; ii++)
+	  xtransform[ii]= polar(1., 2.0 * PI * target.pixellation * milliarcsec * (uv.u * (double)(ii - nx / 2 )));
+			  
+	for (int jj = 0; jj < ny; jj++)
+	  ytransform[jj]= polar(1., 2.0 * PI * target.pixellation * milliarcsec * (uv.v * (double)(jj - ny / 2 )));
+
+	for (int ii = 0; ii < nx; ii++)
+            for (int jj = 0; jj < ny; jj++)
+	      {
+		visibility += target.image[ii][jj] * xtransform[ii]*ytransform[jj];
+		  //* sinc( dwavelength/wavelength * (uv.u * (double)(ii - nx / 2 ) - uv.v * (double)(jj - ny / 2)) * target.pixellation * milliarcsec);
+		
+	      }
+    
+	delete xtransform;
+	delete ytransform;
+    }
     return visibility;
 }
 

@@ -3,7 +3,22 @@ cmake_minimum_required(VERSION 2.8)
 project (oifits-sim)
 
 set(CMAKE_BUILD_TYPE DEBUG)
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -ggdb -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS_DEBUG "-O3 -ftree-vectorize -march=native -ggdb -fomit-frame-pointer")
+
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else()
+    message(STATUS "The compiler ${CMAKE_C_COMPILER} has no OpenMP support. Please use a different C++ compiler if you want to use OpenMP capabilities.")
+endif()
 
 find_package(GLIB2 REQUIRED)
 include_directories(${GLIB2_INCLUDE_DIRS})

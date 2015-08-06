@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cstdio>
 #include <stdexcept>
+//#include <omp.h>
 
 #include "Target.h"
 #include "Array.h"
@@ -203,6 +204,9 @@ int main(int argc, char *argv[])
 
 void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spec, NoiseModel *noisemodel, vector<Observation *> observation_list, string output_filename)
 {
+  // Setup openmp
+  // omp_set_num_threads(omp_get_max_threads());
+
   // Pull up the random number generator.
   static Rand_t random_seed;
 
@@ -247,7 +251,7 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
 
   cout << "N Observations: " << observation_list.size() << endl;
 
-  for (unsigned int i = n_observations; i > 0; i--)
+  for (unsigned int i = 0; i < n_observations; i++)
   {
     Observation *observation = observation_list.back();
     // First look up the type of observation
@@ -257,7 +261,7 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     if (type == HOUR_ANGLE || type == DESCRIPTIVE)
     {
       Obs_HA *observation = dynamic_cast<Obs_HA *>(observation_list.back());
-      printf("Obs: %d / %d - Hour Angle: %3.3f \n",  (n_observations - i + 1),  n_observations, observation->GetHA(target->right_ascension));
+      printf("Obs: %d / %d - Hour Angle: %3.3f \n",  i+1,  n_observations, observation->GetHA(target->right_ascension));
 
     }
     else    //(type == OIFITS)
