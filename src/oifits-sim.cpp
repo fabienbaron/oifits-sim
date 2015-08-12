@@ -9,7 +9,7 @@
 #include <iostream>
 #include <cstdio>
 #include <stdexcept>
-//#include <omp.h>
+#include <complex>
 
 #include "Target.h"
 #include "Array.h"
@@ -269,30 +269,32 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
     }
 
-    {
-      oi_vis vistable = observation->GetVis(array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_vis(fptr, vistable, 1, &status);
-      free_oi_vis(&vistable);
-    }
-
-    {
-      oi_vis2 vis2table = observation->GetVis2(array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_vis2(fptr, vis2table, 1, &status);
-      free_oi_vis2(&vis2table);
-    }
-
-    if (observation->HasTriplets())
-    {
-      oi_t3 t3table = observation->GetT3(array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_t3(fptr, t3table, 1, &status);
-      free_oi_t3(&t3table);
-    }
+    UVPoint* uv_list = NULL
+    complex<double>* cvis = NULL;
+    oi_vis vistable = observation->GetVis(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+    write_oi_vis(fptr, vistable, 1, &status);    
+    free_oi_vis(&vistable);
+    printf("VIS Table written\n");
+  
+    oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+    write_oi_vis2(fptr, vis2table, 1, &status);
+    free_oi_vis2(&vis2table);
+    printf("V2 Table written\n");
+    
+      if (observation->HasTriplets())
+	{
+	  oi_t3 t3table = observation->GetT3(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+	  write_oi_t3(fptr, t3table, 1, &status);
+	  free_oi_t3(&t3table);
+	  printf("T3 Table written\n");
+	}
 
     //    if (observation->HasQuadruplets())
     // {
     //  oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
     //  write_oi_t4(fptr, t4table, 1, &status);
     //  free_oi_t4(&t4table);
+    //      printf("T4 Table written\n");
     // }
 
 

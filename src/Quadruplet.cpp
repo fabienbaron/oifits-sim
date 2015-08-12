@@ -60,7 +60,7 @@ complex<double> Quadruplet::ComputeT4(Target & target, UVPoint uv_ab, UVPoint uv
     complex<double> BC = mBaselines[3]->GetVisibility(target, uv_bc, wavelength, dwavelength);
 
     // Now compute the complex quad closure
-    return ( AB * BC ) / ( AD * conj(BC) );
+    return ( AB * CD ) / ( AD * conj(BC) );
 }
 
 /// Returns a boolean to indicate if the baseline specified by bl_name is involved in this quadruplet.

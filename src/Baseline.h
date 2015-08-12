@@ -54,6 +54,7 @@ class Baseline
     string  GetName(void);
     complex<double> GetVisibility(Target & target, double hour_angle, double wavelength, double dwavelength);
     complex<double> GetVisibility(Target & target, UVPoint uv_coords, double wavelength, double dwavelength);
+    void ComputeTargetVisibilities(int nuv, complex <double>* cvis, Target & target, UVPoint* uv_list);
 
     double  GetVis2(Target & target, double hour_angle, double wavelength, double dwavelength);
     double  GetVis2(Target & target, UVPoint uv_coords, double wavelength, double dwavelength);

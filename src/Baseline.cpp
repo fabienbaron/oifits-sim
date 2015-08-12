@@ -159,6 +159,8 @@ complex<double> Baseline::ComputeVisibility(Target & target, UVPoint uv, double 
     return visibility;
 }
 
+/// Computes the visibility at the specified UV point.
+
 // Returns the station ID of stations 0 or 1
 int Baseline::GetStationID(int num)
 {

@@ -28,7 +28,7 @@ Obs_OIFITS::Obs_OIFITS(string filename)
 }
 
 
-oi_vis Obs_OIFITS::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+oi_vis Obs_OIFITS::GetVis(UVPoint* uv_list, complex<double>* cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
 
 }
@@ -39,7 +39,7 @@ oi_vis Obs_OIFITS::GetVis(Array * array, Combiner * combiner, SpectralMode * spe
 //
 /// \todo This is a really hacky solution.  Come up with a better method.  Perhaps use
 /// the Baseline::GetOI_Vis2_record routine?
-oi_vis2 Obs_OIFITS::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+oi_vis2 Obs_OIFITS::GetVis2(UVPoint* uv_list, complex<double>* cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     // Make a place to store the data as we are simulating it.
     // Note, the vis2_data vector doesn't know how to allocate oi_vis2_record* entries so we have
@@ -164,7 +164,7 @@ oi_vis2 Obs_OIFITS::GetVis2(Array * array, Combiner * combiner, SpectralMode * s
 }
 
 /// \todo This is a really hacky solution.  Try to find a better solution.
-oi_t3  Obs_OIFITS::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+oi_t3  Obs_OIFITS::GetT3(UVPoint* uv_list, complex<double>* cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     // a place to store the data as we are simulating it.
     // Notice, the t3_data vector doesn't know how to deallocate the oi_t3_records
@@ -310,7 +310,7 @@ oi_t3  Obs_OIFITS::GetT3(Array * array, Combiner * combiner, SpectralMode * spec
     return *outt3;
 }
 
-oi_t4  Obs_OIFITS::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+oi_t4  Obs_OIFITS::GetT4(UVPoint* uv_list, complex<double>* cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
   oi_t4* dummy;
   return *dummy;

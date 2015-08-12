@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <cstdio>
 #include <iostream>
+#include <complex>
 // Include headers for the unordered map.  Note, this may need to be just <unordered_map> if compiled in MSVS.
 #include <tr1/unordered_map>
 
@@ -78,10 +79,10 @@ class Observation
     static vector <Observation*> ImportFile(Array * array, string filename, string comment_chars);
   
   public:
-    virtual oi_vis  GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
-    virtual oi_vis2 GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
-    virtual oi_t3   GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
-    virtual oi_t4   GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0;
+    virtual oi_vis  GetVis(UVPoint* uv_list, complex<double>* cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
+    virtual oi_vis2 GetVis2(UVPoint* uv_list, complex<double>* cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
+    virtual oi_t3   GetT3(UVPoint* uv_list, complex<double>* cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
+    virtual oi_t4   GetT4(UVPoint* uv_list, complex<double>* cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0;
 
     int         GetNumStations(void);
     Station *   GetStation(int sta_index);
