@@ -250,6 +250,7 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
   int n_observations = observation_list.size();
 
   cout << "N Observations: " << observation_list.size() << endl;
+  ObsType type = HOUR_ANGLE;
 
   for (unsigned int i = 0; i < n_observations; i++)
   {
@@ -261,32 +262,31 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     if (type == HOUR_ANGLE || type == DESCRIPTIVE)
     {
       Obs_HA *observation = dynamic_cast<Obs_HA *>(observation_list.back());
-      printf("Obs: %d / %d - Hour Angle: %3.3f \n",  i+1,  n_observations, observation->GetHA(target->right_ascension));
+      printf("Obs HA: %d / %d - Hour Angle: %3.3f \n",  i+1,  n_observations, observation->GetHA(target->right_ascension));
 
     }
     else    //(type == OIFITS)
     {
+      printf("Obs OIFITS: %d / %d \n",  i+1,  n_observations);
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
     }
 
-    UVPoint* uv_list = NULL
-    complex<double>* cvis = NULL;
+    UVPoint* uv_list = NULL; // shared between vis, v2, t3, t4...
+    complex<double>* cvis = NULL; // shared between vis, v2, t3, t4...
     oi_vis vistable = observation->GetVis(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
     write_oi_vis(fptr, vistable, 1, &status);    
     free_oi_vis(&vistable);
-    printf("VIS Table written\n");
+ 
   
     oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
     write_oi_vis2(fptr, vis2table, 1, &status);
     free_oi_vis2(&vis2table);
-    printf("V2 Table written\n");
     
       if (observation->HasTriplets())
 	{
 	  oi_t3 t3table = observation->GetT3(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
 	  write_oi_t3(fptr, t3table, 1, &status);
 	  free_oi_t3(&t3table);
-	  printf("T3 Table written\n");
 	}
 
     //    if (observation->HasQuadruplets())

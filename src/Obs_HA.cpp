@@ -9,7 +9,7 @@
 #include <nfft3.h>
 
 Obs_HA::Obs_HA(Array * array, vector<Station*> stations, string exclude_baselines)
-{
+{ mObsType = HOUR_ANGLE;
     this->mArray = array;
     this->mStations = stations;
     this->mBaselines = this->FindBaselines(mStations, exclude_baselines);
@@ -17,7 +17,7 @@ Obs_HA::Obs_HA(Array * array, vector<Station*> stations, string exclude_baseline
 
 // Construct an Observation object from the hour angle, and included/excluded telescopes.
 Obs_HA::Obs_HA(Array * array, double hour_angle, string telescopes, string exclude_baselines)
-{
+{ mObsType = HOUR_ANGLE;
     this->mArray = array;
     this->mHA = hour_angle;
     this->mComputeHA = false;
@@ -37,7 +37,7 @@ Obs_HA::Obs_HA(Array * array, double hour_angle, string telescopes, string exclu
 
 /// Construct an Observation object from the MJD, time, and included/excluded telescopes.
 Obs_HA::Obs_HA(Array * array, double MJD, double time, string telescopes, string exclude_baselines)
-{
+{ mObsType = HOUR_ANGLE;
     this->mArray = array;
     this->mHA = 0;
     // Compute the (full) Julian date from the Modified Julian Date (MJD)
@@ -108,28 +108,30 @@ void ComputeTargetVisibilities(const int nuv, complex <double>* cvis, Target & t
 
 vector <Observation*> Obs_HA::MakeObservations(Array * array, double start, double stop, double every, string telescopes)
 {
-    vector <Observation*> observations;
-	double ha;
-	double temp;
+  vector <Observation*> observations;
+  double ha;
+  double temp;
+  
+  // Enforce start < stop:
+  if(start > stop)
+    {
+      temp = start;
+      start = stop;
+      stop = temp;
+    }
+  
 
-	// Enforce start < stop:
-	if(start > stop)
-	{
-		temp = start;
-		start = stop;
-		stop = temp;
-	}
 
-	int intervals = int((stop - start) / every)+1;
-	cout << "There will be " << intervals << " observations." << endl;
-
-	for(int i = 0; i < intervals; i++)
-	{
-		ha = start + i * every;
-		observations.push_back(new Obs_HA(array, ha, array->GetAllStationNames(), "") );
-	}
-
-	return observations;
+  int intervals = int((stop - start) / every)+1;
+  cout << "There will be " << intervals << " observations." << endl;
+  
+  for(int i = 0; i < intervals; i++)
+    {
+      ha = start + i * every;
+      observations.push_back(new Obs_HA(array, ha, array->GetAllStationNames(), "") );
+    }
+  
+  return observations;
 }
 
 /// Reads in a file that consists of lines of hour angles with or without comments.
@@ -279,7 +281,7 @@ vector <Observation*> Obs_HA::ReadObservation_Descriptive(Array * array, vector 
 }
 
 /// Create an OIFITS-compliant vis table for this observation.
-oi_vis Obs_HA::GetVis(UVPoint* uv_list, complex<double>* cvis, 
+oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis, 
 		      Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_vis vis;
@@ -294,11 +296,16 @@ oi_vis Obs_HA::GetVis(UVPoint* uv_list, complex<double>* cvis,
     double dec = target->declination;
 
     UVPoint uv;
-    if(uv_list == NULL)
-      &uv_list = new UVPoint[nvis*nwave];
-    if(cvis == NULL)
-      &cvis = new complex<double>[nvis*nwave]; 
 
+    UVPoint* uv_list = new UVPoint[nvis*nwave];
+    complex<double>* cvis = new complex<double>[nvis*nwave]; 
+
+    if(puv_list == NULL)
+     { 	
+       puv_list = &uv_list; 
+       pcvis = &cvis;
+     }
+    
     vis.record = (oi_vis_record *) malloc(nvis * sizeof(oi_vis_record));
     for (int i = 0; i < nvis; i++)
       {
@@ -319,7 +326,7 @@ oi_vis Obs_HA::GetVis(UVPoint* uv_list, complex<double>* cvis,
     for (int i = 0; i < nvis; i++)
       {
 	vis.record[i].target_id = target->GetTargetID();
-	/// \bug The time is set to the HA in sec (for consistency with vis_sim)
+	/// \bug The time is set to the HA in sec 
 	vis.record[i].time = this->mHA * 3600.;
 	vis.record[i].mjd = this->mJD;
 	/// \bug Integration time set to 10 seconds by default.
@@ -346,23 +353,29 @@ oi_vis Obs_HA::GetVis(UVPoint* uv_list, complex<double>* cvis,
       {
 	for(int j = 0; j < nwave; j++)
 	  {
-	    vis.record[i].visamperr[j] = 0.002;
-	    vis.record[i].visamp[j] = abs(cvis[i*nwave+j]) + vis.record[i].visamperr[j] * Rangauss(random_seed);
-	    vis.record[i].visphierr[j] = 0.02; //*180./PI
-	    vis.record[i].visphi[j] = arg(cvis[i*nwave+j]) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
+	    vis.record[i].visamperr[j] = 0;//
+	    vis.record[i].visamp[j] = 0;//abs(cvis[i*nwave+j]) + vis.record[i].visamperr[j] * Rangauss(random_seed);
+	    vis.record[i].visphierr[j] = 0.; //
+	    vis.record[i].visphi[j] = 0;//arg(cvis[i*nwave+j]) * 180. / PI + vis.record[i].visphierr[j] * Rangauss(random_seed);
 	    vis.record[i].flag[j] = FALSE;
 	  }
       }
-    //  delete uv_list;
-    //  delete cvis;	
+ 
     return vis;
 }
 
 /// Creates an OIFITS oi_vis2 compliant entry for this observation.
-oi_vis2 Obs_HA::GetVis2(UVPoint* uv_list, complex<double>* cvis, 
+oi_vis2 Obs_HA::GetVis2(UVPoint** puv_list, complex<double>** pcvis, 
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     // init local vars
+
+  UVPoint* uv_list;
+  complex<double>* cvis;
+  uv_list= *puv_list; 
+  cvis = *pcvis;
+
+
     oi_vis2 vis2;
     int nvis = this->mBaselines.size();
     int nwave = spec_mode->mean_wavenumber.size();
@@ -395,7 +408,6 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 	strncpy(vis2.insname, ins_name.c_str(), FLEN_VALUE);
 	vis2.numrec = nvis;
 	vis2.nwave = nwave;
-	printf("Generating V2\n");
 	for (int i = 0; i < nvis; i++)
 	{
 	  vis2.record[i].target_id = target->GetTargetID();
@@ -414,19 +426,20 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 	  {
 	    for(int j = 0; j < nwave; j++)
 	      {
-		// Put out the visibility
+		v2 = this->mBaselines[i]->GetVis2(*target, mHA, wavelength, dwavelength);
 		vis2.record[i].vis2err[j] = 0.001; //v2_err;
-		vis2.record[i].vis2data[j] = abs(cvis[i*nwave+j]) + vis2.record[i].vis2err[j] * Rangauss(random_seed);
+		vis2.record[i].vis2data[j] = 0.;// abs(cvis[i*nwave+j]) + vis2.record[i].vis2err[j] * Rangauss(random_seed);
 		vis2.record[i].flag[j] = FALSE;
 	      }
 	  }
-	
+
+
 	return vis2;
 }
 
 
 /// Create an OIFITS-compliant t3 table for this observation.
-oi_t3  Obs_HA::GetT3(UVPoint* uv_list, complex<double>* cvis, 
+oi_t3  Obs_HA::GetT3(UVPoint** puv_list, complex<double>** pcvis, 
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_t3 t3;
@@ -458,7 +471,6 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 	t3.nwave = nwave;
 
 	// Now copy the data into t3 records:
-	printf("Generating T3\n");
 	for (int i = 0; i < nTriplets; i++)
 	{
 
@@ -503,7 +515,7 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 }
 
 /// Create a t4 table for this observation.
-oi_t4   Obs_HA::GetT4(UVPoint* uv_list, complex<double>* cvis, 
+oi_t4   Obs_HA::GetT4(UVPoint** puv_list, complex<double>** pcvis, 
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_t4 t4;
