@@ -330,32 +330,32 @@ template < class T > class Matrix
         return theMatrix;
     }
 
-    friend ostream & operator<<(ostream & os, const Matrix & m)
-    {
-        // os << "Nrow: " << m.nrows<<" Ncols: "<<m.ncols<<" "<<endl;
-        for (int r = 0; r < m.nrows; r++)
-        {
-            for (int c = 0; c < m.ncols; c++)
-            {
-                os << m.matrix[r][c] << " ";
+    // friend ostream & operator<<(ostream & os, const Matrix & m)
+    // {
+    //    // os << "Nrow: " << m.nrows<<" Ncols: "<<m.ncols<<" "<<endl;
+    //    for (int r = 0; r < m.nrows; r++)
+    //   {
+    //        for (int c = 0; c < m.ncols; c++)
+    //       {
+    //           os << m.matrix[r][c] << " ";
+    //
+    //       }
+    //       os << endl;
+    //    }
+    //    return os;
+    //  }
 
-            }
-            os << endl;
-        }
-        return os;
-    }
+    //    friend istream & operator>>(istream & is, Matrix & m)
+    // {
+    //   int rows, cols;
 
-    friend istream & operator>>(istream & is, Matrix & m)
-    {
-        int rows, cols;
-
-        is >> rows >> cols;
-        m.setsize(rows, cols);
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                is >> m[r][c];
-        return is;
-    }
+    //  is >> rows >> cols;
+    //   m.setsize(rows, cols);
+    //   for (int r = 0; r < rows; r++)
+    //       for (int c = 0; c < cols; c++)
+    //           is >> m[r][c];
+    //   return is;
+    //  }
 
   private:
     int ncols, nrows;

@@ -153,8 +153,8 @@ complex<double> Baseline::ComputeVisibility(Target & target, UVPoint uv, double 
 		
 	      }
     
-	delete xtransform;
-	delete ytransform;
+	delete[] xtransform;
+	delete[] ytransform;
     }
     return visibility;
 }
