@@ -519,8 +519,8 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
 
 		  // assume circular noise cloud
 		  // First save the amplitudes
-		  t4.record[i].t4amperr[j] = fabs((abs(quad_clos) * phi_err);
-		  t4.record[i].t4amp[j] = abs(quad_clos) +  t4.record[i].t4amperr[j] * Rangauss(random_seed)
+		  t4.record[i].t4amperr[j] = fabs(abs(quad_clos) * phi_err);
+		  t4.record[i].t4amp[j] = abs(quad_clos) +  t4.record[i].t4amperr[j] * Rangauss(random_seed);
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
 		  t4.record[i].t4phierr[j] = phi_err * 180. / PI;
 		  t4.record[i].t4phi[j] = arg(quad_clos) * 180./PI + t4.record[i].t4phierr[j] * Rangauss(random_seed);		  
