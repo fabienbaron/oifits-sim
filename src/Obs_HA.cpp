@@ -434,14 +434,14 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 		  dwavelength = spec_mode->delta_wavelength[j];
 		  
 		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavelength, dwavelength);
-		  //phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
+		  phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
 		  
 		  // First save the amplitudes
-		  t3.record[i].t3amperr[j] = .0001;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
+		  t3.record[i].t3amperr[j] = fabs(abs(bis) * phi_err);
 		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t3.record[i].t3phierr[j] = 0.000000001; //phi_err * 180. / PI;
-		  t3.record[i].t3phi[j] = arg(bis) * 180. / PI; //+ t3.record[i].t3phierr[j] * Rangauss(random_seed);
+		  t3.record[i].t3phierr[j] = phi_err * 180. / PI;
+		  t3.record[i].t3phi[j] = arg(bis) * 180. / PI + t3.record[i].t3phierr[j] * Rangauss(random_seed);
 		  t3.record[i].flag[j] = FALSE;
 		}
 
@@ -518,13 +518,12 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
 		  phi_err = noisemodel->GetT4PhaseVar(array, combiner, spec_mode, target, mQuadruplets[i], uv_AB, uv_CD, uv_AD, j);
 
 		  // assume circular noise cloud
-
 		  // First save the amplitudes
-		  t4.record[i].t4amp[j] = abs(quad_clos);
-		  t4.record[i].t4amperr[j] = sqrt(abs(quad_clos) * abs(quad_clos) * phi_err * phi_err);
+		  t4.record[i].t4amperr[j] = fabs((abs(quad_clos) * phi_err);
+		  t4.record[i].t4amp[j] = abs(quad_clos) +  t4.record[i].t4amperr[j] * Rangauss(random_seed)
 		  // Now save the phases.  Remember, the phase is in degrees rather than radians.
-		  t4.record[i].t4phi[j] = (arg(quad_clos) + phi_err * Rangauss(random_seed)) * 180. / PI;
 		  t4.record[i].t4phierr[j] = phi_err * 180. / PI;
+		  t4.record[i].t4phi[j] = arg(quad_clos) * 180./PI + t4.record[i].t4phierr[j] * Rangauss(random_seed);		  
 		  t4.record[i].flag[j] = FALSE;
 		}
 
