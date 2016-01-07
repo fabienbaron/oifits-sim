@@ -10,14 +10,16 @@
 
 Obs_HA::Obs_HA(Array * array, vector<Station*> stations, string exclude_baselines)
 {
-    this->mArray = array;
-    this->mStations = stations;
-    this->mBaselines = this->FindBaselines(mStations, exclude_baselines);
+  mObsType = HOUR_ANGLE;
+  this->mArray = array;
+  this->mStations = stations;
+  this->mBaselines = this->FindBaselines(mStations, exclude_baselines);
 }
 
 // Construct an Observation object from the hour angle, and included/excluded telescopes.
 Obs_HA::Obs_HA(Array * array, double hour_angle, string telescopes, string exclude_baselines)
 {
+  mObsType = HOUR_ANGLE;
     this->mArray = array;
     this->mHA = hour_angle;
     this->mComputeHA = false;
@@ -38,50 +40,53 @@ Obs_HA::Obs_HA(Array * array, double hour_angle, string telescopes, string exclu
 /// Construct an Observation object from the MJD, time, and included/excluded telescopes.
 Obs_HA::Obs_HA(Array * array, double MJD, double time, string telescopes, string exclude_baselines)
 {
-    this->mArray = array;
-    this->mHA = 0;
-    // Compute the (full) Julian date from the Modified Julian Date (MJD)
-    this->mJD = MJD + time / 24 + 2400000.5;
-    this->mComputeHA = true;
-
+  mObsType = HOUR_ANGLE;
+  this->mArray = array;
+  this->mHA = 0;
+  // Compute the (full) Julian date from the Modified Julian Date (MJD)
+  this->mJD = MJD + time / 24 + 2400000.5;
+  this->mComputeHA = true;
+  
     // Now Make the baselines
-    this->mStations = this->FindStations(telescopes);
-    this->mBaselines = this->FindBaselines(mStations, exclude_baselines);
-    this->mTriplets = this->FindTriplets(mStations, exclude_baselines);
-    this->mQuadruplets = this->FindQuadruplets(mStations, exclude_baselines);
-
-    if(mTriplets.size() > 0)
-        this->mbHasTriplets = true;
-
-    if(mQuadruplets.size() > 0)
-        this->mbHasQuadruplets = true;
+  this->mStations = this->FindStations(telescopes);
+  this->mBaselines = this->FindBaselines(mStations, exclude_baselines);
+  this->mTriplets = this->FindTriplets(mStations, exclude_baselines);
+  this->mQuadruplets = this->FindQuadruplets(mStations, exclude_baselines);
+  
+  if(mTriplets.size() > 0)
+    this->mbHasTriplets = true;
+  
+  if(mQuadruplets.size() > 0)
+    this->mbHasQuadruplets = true;
 }
 
 
 vector <Observation*> Obs_HA::MakeObservations(Array * array, double start, double stop, double every, string telescopes)
 {
     vector <Observation*> observations;
-	double ha;
-	double temp;
-
-	// Enforce start < stop:
-	if(start > stop)
-	{
-		temp = start;
-		start = stop;
-		stop = temp;
-	}
-
-	int intervals = int((stop - start) / every)+1;
-	cout << "There will be " << intervals << " observations." << endl;
-
-	for(int i = 0; i < intervals; i++)
-	{
-		ha = start + i * every;
-		observations.push_back(new Obs_HA(array, ha, array->GetAllStationNames(), "") );
-	}
-
-	return observations;
+    Obs_HA* newObs;
+    double ha;
+    double temp;
+    
+    // Enforce start < stop:
+    if(start > stop)
+      {
+	temp = start;
+	start = stop;
+	stop = temp;
+      }
+    
+    int intervals = int((stop - start) / every)+1;
+    cout << "There will be " << intervals << " observations." << endl;
+    
+    for(int i = 0; i < intervals; i++)
+      {
+	ha = start + i * every;
+	newObs = new Obs_HA(array, ha, array->GetAllStationNames(), "");
+	observations.push_back(newObs);
+      }
+    
+    return observations;
 }
 
 /// Reads in a file that consists of lines of hour angles with or without comments.

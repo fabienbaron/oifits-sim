@@ -25,6 +25,7 @@ Obs_OIFITS::Obs_OIFITS(string filename)
     this->mstrFilename = filename;
     /// \bug By default the OIFITS file is designated to have triplets.  Need to check this.
     this->mbHasTriplets = true;
+    mObsType = OIFITS;
 }
 
 

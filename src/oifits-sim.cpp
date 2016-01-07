@@ -261,11 +261,12 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     if (type == HOUR_ANGLE || type == DESCRIPTIVE)
     {
       Obs_HA *observation = dynamic_cast<Obs_HA *>(observation_list.back());
-      printf("Obs: %d / %d - Hour Angle: %3.3f \n",  i+1,  n_observations, observation->GetHA(target->right_ascension));
+      printf("Obs - HA: %d / %d - Hour Angle: %3.3f \n",  i+1,  n_observations, observation->GetHA(target->right_ascension));
 
     }
     else    //(type == OIFITS)
     {
+      printf("Obs - OIFITS:  %d / %d\n",  i+1,  n_observations);
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
     }
 
