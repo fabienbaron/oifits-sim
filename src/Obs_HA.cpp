@@ -285,7 +285,7 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 	vis.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
 	for(int j = 0; j < nwave; j++)
 	  {
-	    if(j%10 ==0) printf("Wav: %d / %d \r", j+1, nwave);
+	    //	    if(j%10 ==0) printf("Wav: %d / %d \r", j+1, nwave);
 	    wavelength = spec_mode->mean_wavelength[j];
 	    dwavelength = spec_mode->delta_wavelength[j];
 	    // Get the complex visibility, and its error.
@@ -300,7 +300,7 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
 	  }
 	
       }
-  	printf("\n");  
+
     return vis;
 }
 
@@ -374,7 +374,7 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 	      vis2.record[i].flag[iwave] = FALSE;
 	    }
 	}
-	printf("\n");
+
 	return vis2;
 }
 
@@ -413,18 +413,18 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 	// Now copy the data into t3 records:
 	for (int i = 0; i < nTriplets; i++)
 	{
-	  if((i%50 == 0)||(i==nTriplets)) printf("Generating T3: %d / %d \n", i+1, nTriplets);
-		t3.record[i].target_id = target->GetTargetID();
-		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
-		t3.record[i].time = this->mHA * 3600.;
-		t3.record[i].mjd = this->mJD;
-		/// \bug Integration time set to 10 seconds by default.
+	  if((i%50 == 0)||(i==nTriplets-1)) printf("Generating T3: %d / %d \n", i+1, nTriplets);
+	  t3.record[i].target_id = target->GetTargetID();
+	  /// \bug The time is set to the HA in sec (for consistency with vis_sim)
+	  t3.record[i].time = this->mHA * 3600.;
+	  t3.record[i].mjd = this->mJD;
+	  /// \bug Integration time set to 10 seconds by default.
 		t3.record[i].int_time = 10;
-
+		
 		// Get the UV coordinates for the AB and BC baselines
 		uv_AB = mTriplets[i]->GetBaseline(0)->UVcoords(this->mHA, target->declination);
 		uv_BC = mTriplets[i]->GetBaseline(1)->UVcoords(this->mHA, target->declination);
-
+		
 		t3.record[i].u1coord = uv_AB.u;
 		t3.record[i].v1coord = uv_AB.v;
 		t3.record[i].u2coord = uv_BC.u;
@@ -451,7 +451,7 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 		}
 
 	}
-	printf("\n");
+
 	return t3;
 }
 
@@ -492,7 +492,7 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
 	for (int i = 0; i < nQuadruplets; i++)
 	{
 
-	  if((i%50 == 0)||(i==nQuadruplets)) printf("Generating T4: %d / %d \n", i+1, nQuadruplets);
+	  if((i%50 == 0)||(i==nQuadruplets-1)) printf("Generating T4: %d / %d \n", i+1, nQuadruplets);
 		t4.record[i].target_id = target->GetTargetID();
 		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
 		t4.record[i].time = this->mHA * 3600.;
