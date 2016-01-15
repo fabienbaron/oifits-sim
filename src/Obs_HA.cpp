@@ -269,7 +269,7 @@ oi_vis Obs_HA::GetVis(Array * array, Combiner * combiner, SpectralMode * spec_mo
     // Now copy the data into vis records:
     for (int i = 0; i < nvis; i++)
       {
-	if(i%50 ==0) printf("Generating VIS: %d / %d \n", i, nvis);
+	if((i%50 ==0)||(i=nvis-1)) printf("Generating VIS: %d / %d \n", i+1, nvis);
 	vis.record[i].target_id = target->GetTargetID();
 	/// \bug The time is set to the HA in sec (for consistency with vis_sim)
 	vis.record[i].time = this->mHA * 3600.;
@@ -342,7 +342,7 @@ oi_vis2 Obs_HA::GetVis2(Array * array, Combiner * combiner, SpectralMode * spec_
 	vis2.nwave = nwave;
 	for (int i = 0; i < npow; i++)
 	{
-	  if(i%50 ==0) printf("Generating V2: %d / %d \n", i, npow);
+	  if((i%50 ==0)||(i==npow-1)) printf("Generating V2: %d / %d \n", i+1, npow);
 	  vis2.record[i].target_id = target->GetTargetID();
 	  /// \bug The time is set to the HA in sec
 	  vis2.record[i].time = this->GetHA(ra) * 3600.;
@@ -413,7 +413,7 @@ oi_t3  Obs_HA::GetT3(Array * array, Combiner * combiner, SpectralMode * spec_mod
 	// Now copy the data into t3 records:
 	for (int i = 0; i < nTriplets; i++)
 	{
-	  if(i%50 == 0) printf("Generating T3: %d / %d \n", i, nTriplets);
+	  if((i%50 == 0)||(i==nTriplets)) printf("Generating T3: %d / %d \n", i+1, nTriplets);
 		t3.record[i].target_id = target->GetTargetID();
 		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
 		t3.record[i].time = this->mHA * 3600.;
@@ -491,6 +491,8 @@ oi_t4   Obs_HA::GetT4(Array * array, Combiner * combiner, SpectralMode * spec_mo
 	// Now copy the data into t4 records:
 	for (int i = 0; i < nQuadruplets; i++)
 	{
+
+	  if((i%50 == 0)||(i==nQuadruplets)) printf("Generating T4: %d / %d \n", i+1, nQuadruplets);
 		t4.record[i].target_id = target->GetTargetID();
 		/// \bug The time is set to the HA in sec (for consistency with vis_sim)
 		t4.record[i].time = this->mHA * 3600.;
