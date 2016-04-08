@@ -270,10 +270,10 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
     }
 
-    {
-      oi_vis vistable = observation->GetVis(array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_vis(fptr, vistable, 1, &status);
-      free_oi_vis(&vistable);
+    { // TBD -- don't fail if there were no vis observations !
+      //oi_vis vistable = observation->GetVis(array, combiner, spec, target, noisemodel, random_seed);
+      //write_oi_vis(fptr, vistable, 1, &status);
+      //free_oi_vis(&vistable);
     }
 
     {
