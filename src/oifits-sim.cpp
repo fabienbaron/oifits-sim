@@ -273,29 +273,36 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
 
     UVPoint* uv_list = NULL; // shared between vis, v2, t3, t4...
     complex<double>* cvis = NULL; // shared between vis, v2, t3, t4...
+
+
+    if (observation->HasVIS())
+    {
     oi_vis vistable = observation->GetVis(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-    write_oi_vis(fptr, vistable, 1, &status);    
+    write_oi_vis(fptr, vistable, 1, &status);
     free_oi_vis(&vistable);
- 
-  
-    oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-    write_oi_vis2(fptr, vis2table, 1, &status);
-    free_oi_vis2(&vis2table);
-    
-      if (observation->HasTriplets())
+}
+
+if (observation->HasT3())
+{
+     oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+     write_oi_vis2(fptr, vis2table, 1, &status);
+     free_oi_vis2(&vis2table);
+ }
+
+  if (observation->HasT3())
 	{
 	  oi_t3 t3table = observation->GetT3(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
 	  write_oi_t3(fptr, t3table, 1, &status);
 	  free_oi_t3(&t3table);
 	}
 
-    //    if (observation->HasQuadruplets())
-    // {
-    //  oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
-    //  write_oi_t4(fptr, t4table, 1, &status);
-    //  free_oi_t4(&t4table);
-    //      printf("T4 Table written\n");
-    // }
+  //if (observation->HasT4())
+  //{
+  // oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
+  // write_oi_t4(fptr, t4table, 1, &status);
+  // free_oi_t4(&t4table);
+  // printf("T4 Table written\n");
+//  }
 
 
     // All done with this observation object.  Pop it off the vector and free memory.

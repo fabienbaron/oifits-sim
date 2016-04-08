@@ -23,8 +23,9 @@ vector <Observation*> Obs_OIFITS::ReadObservation_OIFITS(string filename)
 Obs_OIFITS::Obs_OIFITS(string filename)
 {    mObsType = OIFITS;
     this->mstrFilename = filename;
-    /// \bug By default the OIFITS file is designated to have triplets.  Need to check this.
-    this->mbHasTriplets = true;
+    this->mbHasT3 = true;
+    this->mbHasT3 = true;
+    this->mbHasT3 = true;
 }
 
 
@@ -33,10 +34,6 @@ oi_vis Obs_OIFITS::GetVis(UVPoint** uv_list, complex<double>** cvis, Array * arr
 
 }
 
-
-
-
-//
 /// \todo This is a really hacky solution.  Come up with a better method.  Perhaps use
 /// the Baseline::GetOI_Vis2_record routine?
 oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)

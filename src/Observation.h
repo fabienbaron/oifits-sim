@@ -50,26 +50,28 @@ class Observation
   protected:
     Array * mArray;
     double  mJD;
-    bool    mbHasTriplets;
-    bool    mbHasQuadruplets;
-    
+    bool    mbHasVIS;
+    bool    mbHasV2;
+    bool    mbHasT3;
+    bool    mbHasT4;
+
     ObsType mObsType;
-    
+
     vector<Station*>       mStations;
     vector<Baseline*>      mBaselines;
     vector<Triplet*>       mTriplets;
     vector<Quadruplet*>    mQuadruplets;
-    
+
     vector<Station*>       FindStations(string telescopes);
     vector<Baseline*>      FindBaselines(vector<Station*> stations, string exclude_baselines);
-    vector<Triplet*>       FindTriplets(vector<Station*> stations, string exclude_baselines);  
-    vector<Quadruplet*>    FindQuadruplets(vector<Station*> stations, string exclude_baselines);  
+    vector<Triplet*>       FindTriplets(vector<Station*> stations, string exclude_baselines);
+    vector<Quadruplet*>    FindQuadruplets(vector<Station*> stations, string exclude_baselines);
 
 
   public:
     Observation(void);
     ~Observation(void);
-    
+
     //static vector <Observation*> ReadObservations(Array * array, string filename, string comment_chars);
 
    static vector <Observation*> ParseCommandLine(Array * array, char *argv[], int i, int argc, string comment_chars);
@@ -77,7 +79,7 @@ class Observation
   private:
     static vector <Observation*> ParseCommandLineObs(Array * array, char *argv[], int i, int argc);
     static vector <Observation*> ImportFile(Array * array, string filename, string comment_chars);
-  
+
   public:
     virtual oi_vis  GetVis(UVPoint** puv_list, complex<double>** pcvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
     virtual oi_vis2 GetVis2(UVPoint** puv_list, complex<double>** pcvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed) =0 ;
@@ -86,11 +88,13 @@ class Observation
 
     int         GetNumStations(void);
     Station *   GetStation(int sta_index);
-    bool HasTriplets(void);
-    bool HasQuadruplets(void);
+    bool HasVIS(void);
+    bool HasV2(void);
+    bool HasT3(void);
+    bool HasT4(void);
 
     ObsType     GetObsType(void);
-  
+
 };
 
 #endif // OBSERVATION_H

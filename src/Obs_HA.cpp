@@ -28,11 +28,13 @@ Obs_HA::Obs_HA(Array * array, double hour_angle, string telescopes, string exclu
     this->mTriplets = this->FindTriplets(mStations, exclude_baselines);
     this->mQuadruplets = this->FindQuadruplets(mStations, exclude_baselines);
 
+    mbHasVIS = true;
+    mbHasV2 = true;
     if(mTriplets.size() > 0)
-        this->mbHasTriplets = true;
+        mbHasT3 = true;
 
     if(mQuadruplets.size() > 0)
-        this->mbHasQuadruplets = true;
+        mbHasT4 = true;
 }
 
 /// Construct an Observation object from the MJD, time, and included/excluded telescopes.
@@ -49,12 +51,13 @@ Obs_HA::Obs_HA(Array * array, double MJD, double time, string telescopes, string
     this->mBaselines = this->FindBaselines(mStations, exclude_baselines);
     this->mTriplets = this->FindTriplets(mStations, exclude_baselines);
     this->mQuadruplets = this->FindQuadruplets(mStations, exclude_baselines);
-
+    mbHasVIS = true;
+    mbHasV2 = true;
     if(mTriplets.size() > 0)
-        this->mbHasTriplets = true;
+        this->mbHasT3 = true;
 
     if(mQuadruplets.size() > 0)
-        this->mbHasQuadruplets = true;
+        this->mbHasT4 = true;
 }
 
 
@@ -75,11 +78,11 @@ void ComputeTargetVisibilities(const int nuv, complex <double>* cvis, Target & t
         int ny = target.image.GetCols();
 	const double mas = target.pixellation * milliarcsec;
 	complex<double> temp;
-	nfft_plan fft_setup;        
+	nfft_plan fft_setup;
 	nfft_init_2d(&fft_setup, nx, ny, nuv);
 	int NN[2],nn[2]; NN[0] = nx; nn[0] = 2 * nx; NN[1] = ny; nn[1] = 2 * ny;
 	nfft_init_guru(&fft_setup, 2, NN, nuv, nn, 6, PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F | FFTW_INIT| FFT_OUT_OF_PLACE, FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
-	
+
 	for(int uu=0 ; uu < nuv; uu++)
 	{
 		fft_setup.x[2 * uu] =  uv_list[uu].v * mas  ;
@@ -111,7 +114,7 @@ vector <Observation*> Obs_HA::MakeObservations(Array * array, double start, doub
   vector <Observation*> observations;
   double ha;
   double temp;
-  
+
   // Enforce start < stop:
   if(start > stop)
     {
@@ -119,18 +122,18 @@ vector <Observation*> Obs_HA::MakeObservations(Array * array, double start, doub
       start = stop;
       stop = temp;
     }
-  
+
 
 
   int intervals = int((stop - start) / every)+1;
   cout << "There will be " << intervals << " observations." << endl;
-  
+
   for(int i = 0; i < intervals; i++)
     {
       ha = start + i * every;
       observations.push_back(new Obs_HA(array, ha, array->GetAllStationNames(), "") );
     }
-  
+
   return observations;
 }
 
@@ -281,7 +284,7 @@ vector <Observation*> Obs_HA::ReadObservation_Descriptive(Array * array, vector 
 }
 
 /// Create an OIFITS-compliant vis table for this observation.
-oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis, 
+oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
 		      Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_vis vis;
@@ -298,14 +301,14 @@ oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
     UVPoint uv;
 
     UVPoint* uv_list = new UVPoint[nvis*nwave];
-    complex<double>* cvis = new complex<double>[nvis*nwave]; 
+    complex<double>* cvis = new complex<double>[nvis*nwave];
 
     if(puv_list == NULL)
-     { 	
-       puv_list = &uv_list; 
+     {
+       puv_list = &uv_list;
        pcvis = &cvis;
      }
-    
+
     vis.record = (oi_vis_record *) malloc(nvis * sizeof(oi_vis_record));
     for (int i = 0; i < nvis; i++)
       {
@@ -321,16 +324,16 @@ oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
     strncpy(vis.insname, ins_name.c_str(), FLEN_VALUE);
     vis.numrec = nvis;
     vis.nwave = nwave;
-    
+
     // Setup uv plane
     for (int i = 0; i < nvis; i++)
       {
 	vis.record[i].target_id = target->GetTargetID();
-	/// \bug The time is set to the HA in sec 
+	/// \bug The time is set to the HA in sec
 	vis.record[i].time = this->mHA * 3600.;
 	vis.record[i].mjd = this->mJD;
 	/// \bug Integration time set to 10 seconds by default.
-	vis.record[i].int_time = 10;	
+	vis.record[i].int_time = 10;
 	// Get the UV coordinates for the AB and BC baselines
 	uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec);
 	vis.record[i].ucoord = uv.u;
@@ -342,12 +345,12 @@ oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
 	  {
 	    uv_list[i*nwave+j].u = uv.u/spec_mode->mean_wavelength[j];
 	    uv_list[i*nwave+j].v = uv.v/spec_mode->mean_wavelength[j];
-	  } 
+	  }
       }
     printf("VIS: %d data\n", nvis*nwave);
     // Bulk-compute complex visibilities with NFFT
     ComputeTargetVisibilities(nvis * nwave, cvis, *target, uv_list);
-   
+
     // Now store modulus/phase
     for (int i = 0; i < nvis; i++)
       {
@@ -360,19 +363,19 @@ oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
 	    vis.record[i].flag[j] = FALSE;
 	  }
       }
- 
+
     return vis;
 }
 
 /// Creates an OIFITS oi_vis2 compliant entry for this observation.
-oi_vis2 Obs_HA::GetVis2(UVPoint** puv_list, complex<double>** pcvis, 
+oi_vis2 Obs_HA::GetVis2(UVPoint** puv_list, complex<double>** pcvis,
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     // init local vars
 
   UVPoint* uv_list;
   complex<double>* cvis;
-  uv_list= *puv_list; 
+  uv_list= *puv_list;
   cvis = *pcvis;
 
 
@@ -413,14 +416,14 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 	  vis2.record[i].target_id = target->GetTargetID();
 	  vis2.record[i].time = this->GetHA(ra) * 3600.;
 	  vis2.record[i].mjd = this->mJD;
-	  vis2.record[i].int_time = 1;	  
+	  vis2.record[i].int_time = 1;
 	  uv = this->mBaselines[i]->UVcoords(this->GetHA(ra), dec); //or get from uv_list
 	  vis2.record[i].ucoord = uv.u;
 	  vis2.record[i].vcoord = uv.v;
 	  vis2.record[i].sta_index[0] = this->mBaselines[i]->GetStationID(0);
 	  vis2.record[i].sta_index[1] = this->mBaselines[i]->GetStationID(1);
 	}
-	
+
 	  // Now compute the individual visibilities and uncertainties
 	for (int i = 0; i < nvis; i++)
 	  {
@@ -439,7 +442,7 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 
 
 /// Create an OIFITS-compliant t3 table for this observation.
-oi_t3  Obs_HA::GetT3(UVPoint** puv_list, complex<double>** pcvis, 
+oi_t3  Obs_HA::GetT3(UVPoint** puv_list, complex<double>** pcvis,
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_t3 t3;
@@ -497,10 +500,10 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 		{
 		  wavelength = spec_mode->mean_wavelength[j];
 		  dwavelength = spec_mode->delta_wavelength[j];
-		  
+
 		  bis = mTriplets[i]->GetT3(*target, this->mHA, wavelength, dwavelength);
 		  //phi_err = noisemodel->GetT3PhaseVar(array, combiner, spec_mode, target, mTriplets[i], uv_AB, uv_BC, j);
-		  
+
 		  // First save the amplitudes
 		  t3.record[i].t3amperr[j] = .00002;//sqrt(abs(bis) * abs(bis) * phi_err * phi_err);
 		  t3.record[i].t3amp[j] = abs(bis) + t3.record[i].t3amperr[j] * Rangauss(random_seed);
@@ -515,7 +518,7 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 }
 
 /// Create a t4 table for this observation.
-oi_t4   Obs_HA::GetT4(UVPoint** puv_list, complex<double>** pcvis, 
+oi_t4   Obs_HA::GetT4(UVPoint** puv_list, complex<double>** pcvis,
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_t4 t4;
