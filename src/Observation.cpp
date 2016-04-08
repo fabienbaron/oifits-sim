@@ -430,8 +430,6 @@ vector<Observation*> Observation::ImportFile(Array * array, string filename, str
     }
 }
 
-
-
 // A simple function to see if the observation has complex vis.
 bool    Observation::HasVIS(void)
 {
