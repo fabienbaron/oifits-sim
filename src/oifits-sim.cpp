@@ -1,8 +1,8 @@
 /*
- * oifits-sim.cpp
- *
- *      Authors: bkloppenborg, fbaron
- */
+* oifits-sim.cpp
+*
+*      Authors: bkloppenborg, fbaron
+*/
 #include "oifits-sim.h"
 
 #include <string>
@@ -22,7 +22,7 @@
 #include "NoiseModel_Tatulli2006.h"
 
 extern "C" {
-#include "random.h"
+  #include "random.h"
 }
 
 using namespace std;
@@ -31,31 +31,31 @@ using namespace std;
 void PrintHelp()
 {
   string usage = "The OIFITS Simulator\n"
-                 "Usage: \n"
-                 " oifits-sim arguments \n"
-                 " \n"
-                 "Arguments: \n"
-                 " -h     Prints this message \n"
-                 " -t     Target definition file \n"
-                 " -i     Input image \n"
-                 " -o     Output OIFITS file \n"
-                 " \n"
-                 "There are two Simulation Options: \n"
-                 "(1) from an existing OIFITS file, copying uncertainties from the real data: \n"
-                 " -a     The array used.\n"
-                 " -m     Spectral Mode for the combiner (combiner must be specified before -m).\n"
-                 " -d     Input OIFITS file \n"
-                 " \n"
-                 "or (2) from a list of observations at an array with a specific combiner in\n"
-                 "which the noise is estimated as described in the documentation: \n"
-                 " -a     The array used.\n"
-                 " -c     The combiner.\n"
-                 " -m     Spectral Mode for the combiner (combiner must be specified before -m).\n"
-                 " -obs   Observation Definition File \n"
-                 " \n"
-                 "Note: Some of the parameters also have double-dash overrides that \n"
-                 "immediately follow other parameters that change default/averaged values \n"
-                 "that are found in configuration files.  See the documentation for details.";
+  "Usage: \n"
+  " oifits-sim arguments \n"
+  " \n"
+  "Arguments: \n"
+  " -h     Prints this message \n"
+  " -t     Target definition file \n"
+  " -i     Input image \n"
+  " -o     Output OIFITS file \n"
+  " \n"
+  "There are two Simulation Options: \n"
+  "(1) from an existing OIFITS file, copying uncertainties from the real data: \n"
+  " -a     The array used.\n"
+  " -m     Spectral Mode for the combiner (combiner must be specified before -m).\n"
+  " -d     Input OIFITS file \n"
+  " \n"
+  "or (2) from a list of observations at an array with a specific combiner in\n"
+  "which the noise is estimated as described in the documentation: \n"
+  " -a     The array used.\n"
+  " -c     The combiner.\n"
+  " -m     Spectral Mode for the combiner (combiner must be specified before -m).\n"
+  " -obs   Observation Definition File \n"
+  " \n"
+  "Note: Some of the parameters also have double-dash overrides that \n"
+  "immediately follow other parameters that change default/averaged values \n"
+  "that are found in configuration files.  See the documentation for details.";
 
   cout << usage << "\n";
 }
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   int n_params = 0;
 
   if (argc == 1)
-    PrintHelp();
+  PrintHelp();
 
   cout << "Here" << endl;
 
@@ -192,9 +192,9 @@ int main(int argc, char *argv[])
   // Check that all parameters were specified
   // TODO: Better checking here should be implemented
   if (n_params == 7)
-    run_sim(&target, &array, &combiner, &spec_mode, noisemodel, observation_list, output_fname);
+  run_sim(&target, &array, &combiner, &spec_mode, noisemodel, observation_list, output_fname);
   else
-    cout << "Something is missing on the command line, quitting!" << endl;
+  cout << "Something is missing on the command line, quitting!" << endl;
 
   // Clean up memory
   delete noisemodel;
@@ -277,32 +277,32 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
 
     if (observation->HasVIS())
     {
-    oi_vis vistable = observation->GetVis(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-    write_oi_vis(fptr, vistable, 1, &status);
-    free_oi_vis(&vistable);
-}
+      oi_vis vistable = observation->GetVis(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+      write_oi_vis(fptr, vistable, 1, &status);
+      free_oi_vis(&vistable);
+    }
 
-if (observation->HasT3())
-{
-     oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-     write_oi_vis2(fptr, vis2table, 1, &status);
-     free_oi_vis2(&vis2table);
- }
+    if (observation->HasV2())
+    {
+      oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+      write_oi_vis2(fptr, vis2table, 1, &status);
+      free_oi_vis2(&vis2table);
+    }
 
-  if (observation->HasT3())
-	{
-	  oi_t3 t3table = observation->GetT3(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-	  write_oi_t3(fptr, t3table, 1, &status);
-	  free_oi_t3(&t3table);
-	}
+    if (observation->HasT3())
+    {
+      oi_t3 t3table = observation->GetT3(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
+      write_oi_t3(fptr, t3table, 1, &status);
+      free_oi_t3(&t3table);
+    }
 
-  //if (observation->HasT4())
-  //{
-  // oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
-  // write_oi_t4(fptr, t4table, 1, &status);
-  // free_oi_t4(&t4table);
-  // printf("T4 Table written\n");
-//  }
+    //if (observation->HasT4())
+    //{
+    // oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
+    // write_oi_t4(fptr, t4table, 1, &status);
+    // free_oi_t4(&t4table);
+    // printf("T4 Table written\n");
+    //  }
 
 
     // All done with this observation object.  Pop it off the vector and free memory.
