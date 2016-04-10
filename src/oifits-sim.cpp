@@ -304,11 +304,9 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     // printf("T4 Table written\n");
     //  }
 
-
     // All done with this observation object.  Pop it off the vector and free memory.
     observation_list.pop_back();
     delete observation;
-
     //cout << "Completed Observation " << (n_observations - i + 1) << endl;
   }
 

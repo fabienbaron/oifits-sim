@@ -229,7 +229,7 @@ STATUS write_oi_target(fitsfile *fptr, oi_target targets, STATUS *pStatus)
 
 
 /**
- * Write OI_WAVELENGTH fits binary table 
+ * Write OI_WAVELENGTH fits binary table
  *
  *   @param fptr     see cfitsio documentation
  *   @param wave     wavelength data struct, see exchange.h
@@ -238,7 +238,7 @@ STATUS write_oi_target(fitsfile *fptr, oi_target targets, STATUS *pStatus)
  *
  *   @return On error, returns non-zero cfitsio error code, and sets *pStatus
  */
-STATUS write_oi_wavelength(fitsfile *fptr, oi_wavelength wave, int extver, 
+STATUS write_oi_wavelength(fitsfile *fptr, oi_wavelength wave, int extver,
                            STATUS *pStatus)
 {
   const char function[] = "write_oi_wavelength";
@@ -273,7 +273,7 @@ STATUS write_oi_wavelength(fitsfile *fptr, oi_wavelength wave, int extver,
 
 
 /**
- * Write OI_VIS fits binary table 
+ * Write OI_VIS fits binary table
  *
  *   @param fptr     see cfitsio documentation
  *   @param vis      data struct, see exchange.h
@@ -360,7 +360,7 @@ STATUS write_oi_vis(fitsfile *fptr, oi_vis vis, int extver, STATUS *pStatus)
 
 
 /**
- * Write OI_VIS2 fits binary table 
+ * Write OI_VIS2 fits binary table
  *
  *   @param fptr     see cfitsio documentation
  *   @param vis2     data struct, see exchange.h
@@ -443,7 +443,7 @@ STATUS write_oi_vis2(fitsfile *fptr, oi_vis2 vis2, int extver, STATUS *pStatus)
 
 
 /**
- * Write OI_T3 fits binary table 
+ * Write OI_T3 fits binary table
  *
  *   @param fptr     see cfitsio documentation
  *   @param t3       data struct, see exchange.h
@@ -451,14 +451,14 @@ STATUS write_oi_vis2(fitsfile *fptr, oi_vis2 vis2, int extver, STATUS *pStatus)
  *   @param pStatus  pointer to status variable
  *
  *   @return On error, returns non-zero cfitsio error code, and sets *pStatus
- */ 
+ */
 STATUS write_oi_t3(fitsfile *fptr, oi_t3 t3, int extver, STATUS *pStatus)
 {
   const char function[] = "write_oi_t3";
   const int tfields = 14;
   char *ttype[] = {"TARGET_ID", "TIME", "MJD", "INT_TIME",
 		   "T3AMP", "T3AMPERR", "T3PHI", "T3PHIERR",
-		   "U1COORD", "V1COORD", "U2COORD", "V2COORD", 
+		   "U1COORD", "V1COORD", "U2COORD", "V2COORD",
 		   "STA_INDEX", "FLAG"};
   const char *tformTpl[] = {"I", "D", "D", "D",
 			    "?D", "?D", "?D", "?D",
@@ -537,7 +537,7 @@ STATUS write_oi_t3(fitsfile *fptr, oi_t3 t3, int extver, STATUS *pStatus)
 
 
 /**
- * Write OI_T4 fits binary table 
+ * Write OI_T4 fits binary table
  *
  *   @param fptr     see cfitsio documentation
  *   @param t4       data struct, see exchange.h
@@ -545,18 +545,18 @@ STATUS write_oi_t3(fitsfile *fptr, oi_t3 t3, int extver, STATUS *pStatus)
  *   @param pStatus  pointer to status variable
  *
  *   @return On error, returns non-zero cfitsio error code, and sets *pStatus
- */ 
+ */
 STATUS write_oi_t4(fitsfile *fptr, oi_t4 t4, int extver, STATUS *pStatus)
 {
   const char function[] = "write_oi_t4";
   const int tfields = 16;
   char *ttype[] = {"TARGET_ID", "TIME", "MJD", "INT_TIME",
 		   "T4AMP", "T4AMPERR", "T4PHI", "T4PHIERR",
-		   "U1COORD", "V1COORD", "U2COORD", "V2COORD", "U3COORD", "V3COORD", 
+		   "U1COORD", "V1COORD", "U2COORD", "V2COORD", "U3COORD", "V3COORD",
 		   "STA_INDEX", "FLAG"};
   const char *tformTpl[] = {"I", "D", "D", "D",
 			    "?D", "?D", "?D", "?D",
-			    "1D", "1D", "1D", "1D",  "1D", "1D", 
+			    "1D", "1D", "1D", "1D",  "1D", "1D",
 			    "4I", "?L"};
   char **tform;
   char *tunit[] = {"\0", "s", "day", "s",

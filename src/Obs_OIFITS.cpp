@@ -141,7 +141,7 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
   strncpy(outvis2->date_obs, "2014-01-01", 11);
   strncpy(outvis2->arrname, "FAKE", FLEN_VALUE);
   strncpy(outvis2->insname, "SIM", FLEN_VALUE);
-  outvis2->numrec = nv2;
+  outvis2->numrec = 0;
   outvis2->record = (oi_vis2_record *) malloc(nv2 * sizeof(oi_vis2_record));
 
   UVPoint uv;
@@ -181,6 +181,10 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
       outvis2->record[irecord].vis2data = (double *) malloc(vis2_table.nwave * sizeof(double));
       outvis2->record[irecord].vis2err = (double *) malloc(vis2_table.nwave * sizeof(double));
       outvis2->record[irecord].flag = (BOOL *) malloc(vis2_table.nwave * sizeof(BOOL));
+      outvis2->nwave = vis2_table.nwave;
+      outvis2->numrec +=1;
+      printf("Nwave: %d\n", vis2_table.nwave);
+      // TODO: think about nwave
       for (long j = 0; j < vis2_table.nwave; j++)
       {
         uv.u = (vis2_table.record[i]).ucoord;
@@ -217,14 +221,13 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
       }
       ++irecord;
     }
-
     free_oi_wavelength(&wave);
     free_oi_vis2(&vis2_table);
   }
   fits_close_file(fptr, &status);
   fits_close_file(fptr2, &status2);
   printf("Total number of V2: %ld \t Valid V2: %ld", nv2, nv2_valid);
-
+  fflush(stdout);
   return *outvis2;
 }
 
