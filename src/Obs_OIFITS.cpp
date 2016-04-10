@@ -121,7 +121,7 @@ Obs_OIFITS::Obs_OIFITS(string filename)
 
   mbHasVIS =(nvis_tables > 0);
   mbHasV2 = (nv2_tables > 0);
-  mbHasT3 = false; //(nt3_tables > 0);
+  mbHasT3 = (nt3_tables > 0);
   mbHasT4 = false; //( nt4_tables > 0);
 }
 
@@ -166,7 +166,7 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
     for (long i = 0; i < vis2_table.numrec; i++)
     {
       baseline = array->GetBaseline((vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
-      printf("i:%ld irecord: %ld\n", i, irecord);
+      //printf("i:%ld irecord: %ld\n", i, irecord);
       if(baseline == NULL) printf("Station Indexes: %i %i \n", (vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
       outvis2->record[irecord].target_id = 1;
       outvis2->record[irecord].time = (vis2_table.record[i]).time;
@@ -183,7 +183,7 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
       outvis2->record[irecord].flag = (BOOL *) malloc(vis2_table.nwave * sizeof(BOOL));
       outvis2->nwave = vis2_table.nwave;
       outvis2->numrec +=1;
-      printf("Nwave: %d\n", vis2_table.nwave);
+      //printf("Nwave: %d\n", vis2_table.nwave);
       // TODO: think about nwave
       for (long j = 0; j < vis2_table.nwave; j++)
       {
@@ -226,7 +226,7 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
   }
   fits_close_file(fptr, &status);
   fits_close_file(fptr2, &status2);
-  printf("Total number of V2: %ld \t Valid V2: %ld", nv2, nv2_valid);
+  printf("Total number of V2: %ld \t Valid V2: %ld\n", nv2, nv2_valid);
   fflush(stdout);
   return *outvis2;
 }
@@ -240,7 +240,7 @@ oi_t3 Obs_OIFITS::GetT3(UVPoint** uv_list, complex<double>** cvis, Array * array
   strncpy(outt3->date_obs, "2014-01-01", 11);
   strncpy(outt3->arrname, "TODO", FLEN_VALUE);
   strncpy(outt3->insname, "TODO", FLEN_VALUE);
-  outt3->numrec = nt3;
+  outt3->numrec = 0;
   outt3->record = (oi_t3_record *) malloc(nt3 * sizeof(oi_t3_record));
 
   UVPoint uv1;
@@ -288,7 +288,7 @@ oi_t3 Obs_OIFITS::GetT3(UVPoint** uv_list, complex<double>** cvis, Array * array
       outt3->record[irecord].t3phi = (double *) malloc(t3_table.nwave * sizeof(double));
       outt3->record[irecord].t3phierr = (double *) malloc(t3_table.nwave * sizeof(double));
       outt3->record[irecord].flag = (char *) malloc(t3_table.nwave * sizeof(char));
-
+      outt3->numrec +=1;
       for (long j = 0; j < t3_table.nwave; j++)
       {
 
