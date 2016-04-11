@@ -118,17 +118,19 @@ void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>**
 /// the Baseline::GetOI_Vis2_record routine?
 void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
-  //TODO
+  // TODO
   // Temporary code -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
+// also, we only read ONE array file
     int status = 0, status2 =0;
     fitsfile *infile;
     fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
     oi_array oi_arr;
     char* arrname;
-    read_oi_array(infile, arrname, &oi_arr, &status);
+    read_next_oi_array(infile, &oi_arr, &status);
     write_oi_array(outfile, oi_arr, 1, &status);
     free_oi_array(&oi_arr);
     fits_close_file(infile, &status);
+
 
     UVPoint uv;
     Baseline * baseline;
@@ -151,8 +153,8 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
     printf("V2 TABLE %d \t\tARRAY: %20s \t\t INSTRUMENT: %20s\n", k, vis2_table.arrname, vis2_table.insname);
     for (long i = 0; i < vis2_table.numrec; i++)
     {
-      baseline = array->GetBaseline((vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
-      if(baseline == NULL) printf("Station Indexes: %i %i \n", (vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
+      //baseline = array->GetBaseline((vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
+      //if(baseline == NULL) printf("Station Indexes: %i %i \n", (vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
       for (long j = 0; j < vis2_table.nwave; j++)
       {
         uv.u = (vis2_table.record[i]).ucoord;
@@ -229,7 +231,7 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
     for (long i = 0; i < t3_table.numrec; i++)
     {
       // Get the triplet
-      triplet = array->GetTriplet((t3_table.record[i]).sta_index[0], (t3_table.record[i]).sta_index[1], (t3_table.record[i]).sta_index[2]);
+      //triplet = array->GetTriplet((t3_table.record[i]).sta_index[0], (t3_table.record[i]).sta_index[1], (t3_table.record[i]).sta_index[2]);
 
       // Allocate memory for the vis2data, vis2error, and flag:
       for (long j = 0; j < t3_table.nwave; j++)
