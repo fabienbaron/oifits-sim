@@ -77,6 +77,13 @@ int main(int argc, char *argv[])
   SpectralMode spec_mode;
   vector <Observation *> observation_list;
   bool oifits_mode = FALSE;
+  bool target_info = FALSE;
+  bool image_info = FALSE;
+  bool spectral_info = false;
+  bool output_info = false;
+  bool array_info = false;
+  bool combiner_info = false;
+  bool obs_info = false;
 
   // TODO: For now we only have one noise model, so we load it by default
   NoiseModel *noisemodel = new NoiseModel_Tatulli2006();
@@ -101,7 +108,7 @@ int main(int argc, char *argv[])
     {
       target.ImportFile(string(argv[i + 1]), comment_chars);
       target.ParseFileOptions(argv, i + 2, argc);
-      n_params += 1;
+      target_info= true;
     }
 
     // And the image file we're going to use for the simulation:
@@ -109,7 +116,7 @@ int main(int argc, char *argv[])
     {
       target.SetImage(string(argv[i + 1]));
       target.ParseImageOptions(argv, i + 2, argc);
-      n_params += 1;
+      image_info = true;
     }
 
     // And where we're going to write the output:
@@ -118,7 +125,7 @@ int main(int argc, char *argv[])
       try
       {
         output_fname = string(argv[i + 1]);
-        n_params += 1;
+        output_info = true;
       }
       catch (...)
       {
@@ -126,42 +133,25 @@ int main(int argc, char *argv[])
       }
     }
 
-    //
-    // After this there are two cases:
-    //
-
-    // ################
-    // (1) we use an existing OIFITS data file.  Really this has everything
-    // needed to run the simulation, but I don't want to write a module to parse
-    // the OIFITS array and wavelength tables.  So, we'll just require
-    // that the array and spectral mode be specified too.
-
-    // FB: since Brian was lazy and I'm not, I'm going to do it correctly ;)
     if ((strcmp(argv[i], "-d") == 0) && (i < argc - 1))
     {
       observation_list = Obs_OIFITS::ReadObservation_OIFITS(string(argv[i + 1]));
-      oifits_mode == true;
+      oifits_mode = true;
       printf("Command line interpreted as requiring OIFITS mode\n");
-      n_params = 7;
     }
-    else
-    {
-      // ################
-      // or (2) we are simulating something from scratch in which case we need
-      // the array
 
-      if ((strcmp(argv[i], "-a") == 0) && (i < argc - 1))
+    if ((strcmp(argv[i], "-a") == 0) && (i < argc - 1))
       {
         array.ImportFile(string(argv[i + 1]), comment_chars);
         array.ParseOptions(argv, i, argc);
-        n_params += 1;
+        array_info = true;
       }
 
       // the combiner
       if ((strcmp(argv[i], "-c") == 0) && (i < argc - 1))
       {
         combiner.ImportFile(string(argv[i + 1]), comment_chars);
-        n_params += 1;
+        combiner_info = true;
       }
 
       // the spectral mode.  Note, the combiner must be specified first so we can check that
@@ -175,7 +165,7 @@ int main(int argc, char *argv[])
         }
 
         spec_mode.ImportFile(string(argv[i + 1]), combiner.GetName(), comment_chars);
-        n_params += 1;
+        spectral_info = true;
 
       }
 
@@ -192,18 +182,17 @@ int main(int argc, char *argv[])
         // Observations are a little funny.  We permit both files and command line options.
         // Just pass things off to the observation class so it can decide what to do:
         observation_list = Observation::ParseCommandLine(&array, argv, i, argc, comment_chars);
-        n_params += 1;
+        obs_info = true;
       }
 
-    }
-      }
+  }
 
-  // Check that all parameters were specified
-  // TODO: Better checking here should be implemented
-  if (n_params == 7)
+  if ( (target_info && image_info && output_info) // basic requirement for both modes
+     &&  ( (oifits_mode )         // OIFITS mode
+      || (!oifits_mode && spectral_info && array_info && combiner_info && obs_info) )  )   // HA or descriptive mode
   run_sim(&target, &array, &combiner, &spec_mode, noisemodel, observation_list, output_fname);
   else
-  cout << "Something is missing on the command line, quitting!" << endl;
+  printf("Something is missing on the command line-- found only %d arguments -- quitting !\n", n_params);
 
   // Clean up memory
   delete noisemodel;
