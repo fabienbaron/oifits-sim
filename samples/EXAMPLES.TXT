@@ -4,6 +4,6 @@ Simulation using Hour Angles
 ../bin/oifits-sim -t ../samples/target_epsAur.txt -i ../samples/2010-10.fits -a CHARA -c MIRC -m LowH -obs --start -1 --end 1 --every 0.25 -o test.oifits 
 
 Simulation using copying of pre-existing OIFITS
-../bin/oifits-sim -t ../samples/target_epsAur.txt -i ../samples/2010-10.fits -a CHARA -c MIRC -m LowH -d ../samples/2010-10-eps_Aur-all-avg5.oifits -o test.oifits
+../bin/oifits-sim -t ../samples/target_epsAur.txt -i ../samples/2010-10.fits -d ../samples/2010-10-eps_Aur-all-avg5.oifits -o test.oifits
 
 

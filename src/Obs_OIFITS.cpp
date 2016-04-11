@@ -28,23 +28,6 @@ Obs_OIFITS::Obs_OIFITS(string filename)
   fitsfile *fptr;
   int status = 0;
 
-
-  // get the ID of the first target in the file
-  oi_target targets;
-  fits_open_file(&fptr, filename.c_str(), READONLY, &status);
-  read_oi_target(fptr, &targets, &status);
-  if(targets.ntarget > 1)
-  {
-    throw std::runtime_error("Can only use single target files.");
-  }
-  else
-  {
-    target_id = (targets.targ[0]).target_id;
-  }
-  fits_close_file(fptr, &status);
-  free_oi_target(&targets);
-
-
   nvis_tables = 0; nv2_tables =0; nt3_tables =0; nt4_tables=0;
   nt4 =0; nt3 =0; nv2 =0; nvis=0;
   oi_vis vis_table;
@@ -135,22 +118,34 @@ void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>**
 /// the Baseline::GetOI_Vis2_record routine?
 void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
-  UVPoint uv;
-  Baseline * baseline;
-  oi_wavelength wave;
-  double wavelength, dwavelength;
-  bool valid_v2;
-  long nv2_valid = 0;
+  //TODO
+  // Temporary code -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
+    int status = 0, status2 =0;
+    fitsfile *infile;
+    fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
+    oi_array oi_arr;
+    char* arrname;
+    read_oi_array(infile, arrname, &oi_arr, &status);
+    write_oi_array(outfile, oi_arr, 1, &status);
+    free_oi_array(&oi_arr);
+    fits_close_file(infile, &status);
 
-  int status = 0;
-  int status2 = 0;
-  fitsfile *fptr;
-  fitsfile *fptr2;
-  fits_open_file(&fptr, mstrFilename.c_str(), READONLY, &status);
-  fits_open_file(&fptr2, mstrFilename.c_str(), READONLY, &status2);
-  oi_vis2 vis2_table;
-  for(int k=0;k<nv2_tables; k++)
-  {
+    UVPoint uv;
+    Baseline * baseline;
+    oi_wavelength wave;
+    double wavelength, dwavelength;
+    bool valid_v2;
+    long nv2_valid = 0;
+
+    status = 0;
+    status2 = 0;
+    fitsfile *fptr;
+    fitsfile *fptr2;
+    fits_open_file(&fptr, mstrFilename.c_str(), READONLY, &status);
+    fits_open_file(&fptr2, mstrFilename.c_str(), READONLY, &status2);
+    oi_vis2 vis2_table;
+    for(int k=0;k<nv2_tables; k++)
+    {
     read_next_oi_vis2(fptr, &vis2_table, &status);
     read_oi_wavelength(fptr2, vis2_table.insname, &wave, &status2);
     printf("V2 TABLE %d \t\tARRAY: %20s \t\t INSTRUMENT: %20s\n", k, vis2_table.arrname, vis2_table.insname);

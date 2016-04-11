@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
   // TODO: For now we only have one noise model, so we load it by default
   NoiseModel *noisemodel = new NoiseModel_Tatulli2006();
 
-  int n_params = 0;
-
   if (argc == 1)
   PrintHelp();
 
@@ -192,7 +190,7 @@ int main(int argc, char *argv[])
       || (!oifits_mode && spectral_info && array_info && combiner_info && obs_info) )  )   // HA or descriptive mode
   run_sim(&target, &array, &combiner, &spec_mode, noisemodel, observation_list, output_fname);
   else
-  printf("Something is missing on the command line-- found only %d arguments -- quitting !\n", n_params);
+  printf("Something is missing on the command line -- quitting !\n");
 
   // Clean up memory
   delete noisemodel;
@@ -225,8 +223,6 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
     fits_report_error(stderr, status);
     return;
   }
-
-
 
   // Now compute the vis2 records and t3s:
   int n_observations = observation_list.size();
@@ -269,9 +265,13 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
 
       // SETUP HELPER OIFITS TABLES (COPYING THE ORIGINAL ONES)
       // NOTE: wavelength table are not set here, but done during VIS/V2/T3/T4
+      // so we only want to copy the array table
+      // the target table is generated from command line info
       if(i==0)
       {
-
+        oi_target oi_targ = target->GetOITarget();
+        write_oi_target(outfile, oi_targ, &status);
+        free_oi_target(&oi_targ);
       }
 
     }
