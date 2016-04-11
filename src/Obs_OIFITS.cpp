@@ -135,57 +135,29 @@ void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>**
 /// the Baseline::GetOI_Vis2_record routine?
 void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
-  oi_vis2 * outvis2 = (oi_vis2*) malloc(sizeof(oi_vis2));
-  outvis2->revision = 1;
-  strncpy(outvis2->date_obs, "2014-01-01", 11); //
-  outvis2->numrec = 0;
-  outvis2->record = (oi_vis2_record *) malloc(nv2 * sizeof(oi_vis2_record));
   UVPoint uv;
   Baseline * baseline;
   oi_wavelength wave;
   double wavelength, dwavelength;
   bool valid_v2;
   long nv2_valid = 0;
-  long irecord =0;
 
-// Now import V2 Tables
-  oi_vis2 vis2_table;
   int status = 0;
   int status2 = 0;
   fitsfile *fptr;
   fitsfile *fptr2;
   fits_open_file(&fptr, mstrFilename.c_str(), READONLY, &status);
   fits_open_file(&fptr2, mstrFilename.c_str(), READONLY, &status2);
+  oi_vis2 vis2_table;
   for(int k=0;k<nv2_tables; k++)
   {
-
     read_next_oi_vis2(fptr, &vis2_table, &status);
     read_oi_wavelength(fptr2, vis2_table.insname, &wave, &status2);
-    strncpy(outvis2->arrname, vis2_table.arrname, FLEN_VALUE);
-    strncpy(outvis2->insname, vis2_table.insname, FLEN_VALUE);
     printf("V2 TABLE %d \t\tARRAY: %20s \t\t INSTRUMENT: %20s\n", k, vis2_table.arrname, vis2_table.insname);
     for (long i = 0; i < vis2_table.numrec; i++)
     {
       baseline = array->GetBaseline((vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
-      //printf("i:%ld irecord: %ld\n", i, irecord);
       if(baseline == NULL) printf("Station Indexes: %i %i \n", (vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
-      outvis2->record[irecord].target_id = 1;
-      outvis2->record[irecord].time = (vis2_table.record[i]).time;
-      outvis2->record[irecord].mjd = (vis2_table.record[i]).mjd;
-      outvis2->record[irecord].int_time = (vis2_table.record[i]).int_time;
-      outvis2->record[irecord].ucoord = (vis2_table.record[i]).ucoord;
-      outvis2->record[irecord].vcoord = (vis2_table.record[i]).vcoord;
-      outvis2->record[irecord].sta_index[0] = (vis2_table.record[i]).sta_index[0];
-      outvis2->record[irecord].sta_index[1] = (vis2_table.record[i]).sta_index[1];
-      // pre-allocate memory for the vis2data, vis2error, and flag
-      // because some points may be NaN/invalid, the actual final size may be smaller
-      outvis2->record[irecord].vis2data = (double *) malloc(vis2_table.nwave * sizeof(double));
-      outvis2->record[irecord].vis2err = (double *) malloc(vis2_table.nwave * sizeof(double));
-      outvis2->record[irecord].flag = (BOOL *) malloc(vis2_table.nwave * sizeof(BOOL));
-      outvis2->nwave = vis2_table.nwave;
-      outvis2->numrec +=1;
-      //printf("Nwave: %d\n", vis2_table.nwave);
-      // TODO: think about nwave
       for (long j = 0; j < vis2_table.nwave; j++)
       {
         uv.u = (vis2_table.record[i]).ucoord;
@@ -207,21 +179,22 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
 
         if (valid_v2 == TRUE)
         {
-          outvis2->record[irecord].vis2data[j] = (vis2_table.record[i]).vis2data[j]; //baseline->GetVis2(*target, uv, wavelength, dwavelength) + v2_err * Rangauss(random_seed);
-          outvis2->record[irecord].vis2err[j] = (vis2_table.record[i]).vis2err[j];
-          outvis2->record[irecord].flag[j] = false;
+          //baseline->GetVis2(*target, uv, wavelength, dwavelength) + v2_err * Rangauss(random_seed);
+          (vis2_table.record[i]).vis2data[j] = 0.12345;
           ++nv2_valid;
         }
         else
         {
-          //printf("OIFITS import -- V2 point invalid, Record: %ld\t Wav: %ld Flag: %d V2: %f V2err: %f \n", i, j, (vis2_table.record[i]).flag[j], (vis2_table.record[i]).vis2data[j], (vis2_table.record[i]).vis2err[j]);
-          outvis2->record[irecord].vis2data[j] = nan(""); //baseline->GetVis2(*target, uv, wavelength, dwavelength) + v2_err * Rangauss(random_seed);
-          outvis2->record[irecord].vis2err[j] = nan("");
-          outvis2->record[irecord].flag[j] = true;
+          // Force-flag it
+          (vis2_table.record[i]).vis2data[j] = nan("");
+          (vis2_table.record[i]).vis2err[j] = nan("");
+          (vis2_table.record[i]).flag[j] = true;
         }
       }
-      ++irecord;
     }
+    // Table finished -- now write it to output file
+    write_oi_wavelength(outfile, wave, 1, &status);
+    write_oi_vis2(outfile, vis2_table, 1, &status);
     free_oi_wavelength(&wave);
     free_oi_vis2(&vis2_table);
   }
@@ -229,25 +202,17 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
   fits_close_file(fptr2, &status2);
   printf("Total number of V2: %ld \t Valid V2: %ld\n", nv2, nv2_valid);
   fflush(stdout);
-  write_oi_vis2(outfile, *outvis2, 1, &status);
-  free_oi_vis2(outvis2);
 }
 
 
 void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
   oi_t3 t3_table;
-  oi_t3 * outt3 = (oi_t3*) malloc(sizeof(oi_t3));
-  outt3->revision = 1;
-  strncpy(outt3->date_obs, "2014-01-01", 11);
-  outt3->numrec = 0;
-  outt3->record = (oi_t3_record *) malloc(nt3 * sizeof(oi_t3_record));
 
   UVPoint uv1;
   UVPoint uv2;
   UVPoint uv3;
   Triplet * triplet;
-  //  Baseline * baseline;
   oi_wavelength wave;
   double wavelength, dwavelength;
   bool valid_t3amp, valid_t3phi;
@@ -264,38 +229,16 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
   {
     read_next_oi_t3(fptr, &t3_table, &status);
     read_oi_wavelength(fptr2, t3_table.insname, &wave, &status2);
-
-    strncpy(outt3->arrname, t3_table.arrname, FLEN_VALUE);
-    strncpy(outt3->insname, t3_table.insname, FLEN_VALUE);
     printf("T3 TABLE %d \t\tARRAY: %20s \t\tINSTRUMENT: %20s\n", k, t3_table.arrname, t3_table.insname);
 
     for (long i = 0; i < t3_table.numrec; i++)
     {
       // Get the triplet
-      triplet = array->GetTriplet((t3_table.record[i]).sta_index[0],
-      (t3_table.record[i]).sta_index[1], (t3_table.record[i]).sta_index[2]);
-      outt3->record[irecord].target_id = 1;
-      outt3->record[irecord].time = (t3_table.record[i]).time;
-      outt3->record[irecord].mjd = (t3_table.record[i]).mjd;
-      outt3->record[irecord].int_time = (t3_table.record[i]).int_time;
-      outt3->record[irecord].u1coord = (t3_table.record[i]).u1coord;
-      outt3->record[irecord].v1coord = (t3_table.record[i]).v1coord;
-      outt3->record[irecord].u2coord = (t3_table.record[i]).u2coord;
-      outt3->record[irecord].v2coord = (t3_table.record[i]).v2coord;
-      outt3->record[irecord].sta_index[0] = (t3_table.record[i]).sta_index[0];
-      outt3->record[irecord].sta_index[1] = (t3_table.record[i]).sta_index[1];
-      outt3->record[irecord].sta_index[2] = (t3_table.record[i]).sta_index[2];
+      triplet = array->GetTriplet((t3_table.record[i]).sta_index[0], (t3_table.record[i]).sta_index[1], (t3_table.record[i]).sta_index[2]);
 
       // Allocate memory for the vis2data, vis2error, and flag:
-      outt3->record[irecord].t3amp = (double *) malloc(t3_table.nwave * sizeof(double));
-      outt3->record[irecord].t3amperr = (double *) malloc(t3_table.nwave * sizeof(double));
-      outt3->record[irecord].t3phi = (double *) malloc(t3_table.nwave * sizeof(double));
-      outt3->record[irecord].t3phierr = (double *) malloc(t3_table.nwave * sizeof(double));
-      outt3->record[irecord].flag = (char *) malloc(t3_table.nwave * sizeof(char));
-      outt3->numrec +=1;
       for (long j = 0; j < t3_table.nwave; j++)
       {
-
         // Reset the UV coordinates
         uv1.u = (t3_table.record[i]).u1coord;
         uv1.v = (t3_table.record[i]).v1coord;
@@ -332,49 +275,42 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
         || ((t3_table.record[i]).t3phierr[j] == FLOATNULLVALUE)
         || ((t3_table.record[i]).flag[j] != 0));
 
-
         // Compute the bispectra
         //  bis = triplet->GetT3(*target, uv1, uv2, uv3, wavelength, dwavelength);
-        //outt3->record[irecord].t3amp[j] = abs(bis) + amp_err * Rangauss(random_seed);
-        //outt3->record[irecord].t3phi[j] = (arg(bis) * 180 / PI) + phi_err * Rangauss(random_seed);
-        outt3->record[irecord].flag[j] = !( (valid_t3amp == TRUE) || (valid_t3amp == TRUE)  );
-        if(outt3->record[irecord].flag[j]  == FALSE) nt3_valid++;
-
-        // TODO: take into account original flags. Also do this for other observables
-
+        (t3_table.record[i]).flag[j] = ! ( ( (t3_table.record[i]).flag[j] == FALSE) && (valid_t3amp == TRUE) && (valid_t3amp == TRUE) );
+        if((t3_table.record[i]).flag[j]  == FALSE)
+          nt3_valid++;
         if (valid_t3amp == TRUE)
         {
-          outt3->record[irecord].t3amp[j] = (t3_table.record[i]).t3amperr[j];
-          outt3->record[irecord].t3amperr[j] = (t3_table.record[i]).t3amperr[j];
+          (t3_table.record[i]).t3amp[j] = 0.12324;
         }
         else
         {
-          outt3->record[irecord].t3amp[j] = nan("");
-          outt3->record[irecord].t3amperr[j] = nan("");
+          (t3_table.record[i]).t3amp[j] = nan("");
+          (t3_table.record[i]).t3amperr[j] = nan("");
         }
 
         if (valid_t3phi == TRUE)
         {
-          outt3->record[irecord].t3phi[j] = (t3_table.record[i]).t3phi[j];
-          outt3->record[irecord].t3phierr[j] = (t3_table.record[i]).t3phierr[j];
+          (t3_table.record[i]).t3phi[j] = 1.23456;
+
         }
         else
         {
-          outt3->record[irecord].t3phi[j] = nan("");
-          outt3->record[irecord].t3phierr[j] = nan("");
+          (t3_table.record[i]).t3phi[j] = nan("");
+          (t3_table.record[i]).t3phierr[j] = nan("");
+
         }
 
       }
-      ++irecord;
     }
+    write_oi_wavelength(outfile, wave, 1, &status);
+    write_oi_t3(outfile, t3_table, 1, &status);
     free_oi_wavelength(&wave);
     free_oi_t3(&t3_table);
   }
   fits_close_file(fptr, &status);
   fits_close_file(fptr2, &status2);
-
-  write_oi_t3(outfile, *outt3, 1, &status);
-  free_oi_t3(outt3);
 }
 
 void Obs_OIFITS::WriteT4(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
