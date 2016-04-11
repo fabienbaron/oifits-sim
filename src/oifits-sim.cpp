@@ -219,104 +219,90 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
   }
 
   // Open up the OIFITS file.
-  fitsfile *fptr;
+  fitsfile *outfile;
   int status = 0;
-  fits_create_file(&fptr, output_filename.c_str(), &status);
+  fits_create_file(&outfile, output_filename.c_str(), &status);
   if (status)
   {
     fits_report_error(stderr, status);
     return;
   }
 
-  {
-    oi_array oi_arr = array->GetOIArray();
-    write_oi_array(fptr, oi_arr, 1, &status);
-    free_oi_array(&oi_arr);
-  }
-  {
-    oi_target oi_targ = target->GetOITarget();
-    write_oi_target(fptr, oi_targ, &status);
-    free_oi_target(&oi_targ);
-  }
-  {
-    oi_wavelength oi_wave = spec->GetOIWavelength();
-    write_oi_wavelength(fptr, oi_wave, 1, &status);
-    free_oi_wavelength(&oi_wave);
-  }
 
-  vector<double> wavenumbers = spec->GetWavenumbers();
 
   // Now compute the vis2 records and t3s:
   int n_observations = observation_list.size();
 
-  cout << "N Observations: " << observation_list.size() << endl;
-  ObsType type = HOUR_ANGLE;
+  cout << "Simulating N Observations: " << observation_list.size() << endl;
 
   for (unsigned int i = 0; i < n_observations; i++)
   {
     Observation *observation = observation_list.back();
-    // First look up the type of observation
     ObsType type = observation->GetObsType();
+    UVPoint* uv_list = NULL; // shared between vis, v2, t3, t4...
+    complex<double>* cvis = NULL; // shared between vis, v2, t3, t4...
 
     // Do a dymamic cast to get the subclass object back
     if (type == HOUR_ANGLE || type == DESCRIPTIVE)
     {
       Obs_HA *observation = dynamic_cast<Obs_HA *>(observation_list.back());
       printf("Obs HA: %d / %d - Hour Angle: %3.3f \n",  i+1,  n_observations, observation->GetHA(target->right_ascension));
+      // SETUP HELPER OIFITS TABLES
+      if(i==0)
+          {
+          oi_array oi_arr = array->GetOIArray();
+          write_oi_array(outfile, oi_arr, 1, &status);
+          free_oi_array(&oi_arr);
 
+          oi_target oi_targ = target->GetOITarget();
+          write_oi_target(outfile, oi_targ, &status);
+          free_oi_target(&oi_targ);
+
+          oi_wavelength oi_wave = spec->GetOIWavelength();
+          write_oi_wavelength(outfile, oi_wave, 1, &status);
+          free_oi_wavelength(&oi_wave);
+          vector<double> wavenumbers = spec->GetWavenumbers();
+         }
     }
     else    //(type == OIFITS)
     {
       printf("Obs OIFITS: %d / %d \n",  i+1,  n_observations);
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
+
+      // SETUP HELPER OIFITS TABLES (COPYING THE ORIGINAL ONES)
+      // NOTE: wavelength table are not set here, but done during VIS/V2/T3/T4
+      if(i==0)
+      {
+
+      }
+
     }
-
-    UVPoint* uv_list = NULL; // shared between vis, v2, t3, t4...
-    complex<double>* cvis = NULL; // shared between vis, v2, t3, t4...
-
 
     if (observation->HasVIS())
-    {
-      oi_vis vistable = observation->GetVis(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_vis(fptr, vistable, 1, &status);
-      free_oi_vis(&vistable);
-    }
+        observation->WriteVis(outfile, &uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
 
     if (observation->HasV2())
-    {
-      oi_vis2 vis2table = observation->GetVis2(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_vis2(fptr, vis2table, 1, &status);
-      free_oi_vis2(&vis2table);
-    }
+        observation->WriteVis2(outfile, &uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
 
     if (observation->HasT3())
-    {
-      oi_t3 t3table = observation->GetT3(&uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
-      write_oi_t3(fptr, t3table, 1, &status);
-      free_oi_t3(&t3table);
-    }
+        observation->WriteT3(outfile, &uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
 
-    //if (observation->HasT4())
-    //{
-    // oi_t4 t4table = observation->GetT4(array, combiner, spec, target, noisemodel, random_seed);
-    // write_oi_t4(fptr, t4table, 1, &status);
-    // free_oi_t4(&t4table);
-    // printf("T4 Table written\n");
-    //  }
+  //  if (observation->HasT4())
+  //      observation->WriteT4(fprt, &uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);
 
     // All done with this observation object.  Pop it off the vector and free memory.
     observation_list.pop_back();
     delete observation;
-    //cout << "Completed Observation " << (n_observations - i + 1) << endl;
+
   }
 
   if (status)
   {
-    fits_delete_file(fptr, &status);
+    fits_delete_file(outfile, &status);
     return;
   }
   else
   {
-    fits_close_file(fptr, &status);
+    fits_close_file(outfile, &status);
   }
 }

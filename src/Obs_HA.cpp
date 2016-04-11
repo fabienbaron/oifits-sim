@@ -284,7 +284,7 @@ vector <Observation*> Obs_HA::ReadObservation_Descriptive(Array * array, vector 
 }
 
 /// Create an OIFITS-compliant vis table for this observation.
-oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
+void Obs_HA::WriteVis(fitsfile* outfile, UVPoint** puv_list, complex<double>** pcvis,
 		      Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_vis vis;
@@ -364,11 +364,13 @@ oi_vis Obs_HA::GetVis(UVPoint** puv_list, complex<double>** pcvis,
 	  }
       }
 
-    return vis;
+    int status = 0;
+    write_oi_vis(outfile, vis, 1, &status);
+    free_oi_vis(&vis);
 }
 
 /// Creates an OIFITS oi_vis2 compliant entry for this observation.
-oi_vis2 Obs_HA::GetVis2(UVPoint** puv_list, complex<double>** pcvis,
+void Obs_HA::WriteVis2(fitsfile* outfile, UVPoint** puv_list, complex<double>** pcvis,
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     // init local vars
@@ -436,13 +438,14 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 	      }
 	  }
 
-
-	return vis2;
+  int status = 0;
+  write_oi_vis2(outfile, vis2, 1, &status);
+  free_oi_vis2(&vis2);
 }
 
 
 /// Create an OIFITS-compliant t3 table for this observation.
-oi_t3  Obs_HA::GetT3(UVPoint** puv_list, complex<double>** pcvis,
+void  Obs_HA::WriteT3(fitsfile* outfile, UVPoint** puv_list, complex<double>** pcvis,
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_t3 t3;
@@ -514,11 +517,13 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 		}
 
 	}
-	return t3;
+  int status = 0;
+  write_oi_t3(outfile, t3, 1, &status);
+  free_oi_t3(&t3);
 }
 
 /// Create a t4 table for this observation.
-oi_t4   Obs_HA::GetT4(UVPoint** puv_list, complex<double>** pcvis,
+void   Obs_HA::WriteT4(fitsfile* outfile, UVPoint** puv_list, complex<double>** pcvis,
 Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
     oi_t4 t4;
@@ -597,8 +602,9 @@ Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, N
 		}
 
 	}
-
-	return t4;
+  int status = 0;
+  write_oi_t4(outfile, t4, 1, &status);
+  free_oi_t4(&t4);
 }
 
 double Obs_HA::GetHA(double targ_ra)

@@ -119,31 +119,27 @@ Obs_OIFITS::Obs_OIFITS(string filename)
   }
   fits_close_file(fptr, &status);
 
-  mbHasVIS =(nvis_tables > 0);
+  mbHasVIS = false; //(nvis_tables > 0);
   mbHasV2 = (nv2_tables > 0);
   mbHasT3 = (nt3_tables > 0);
   mbHasT4 = false; //( nt4_tables > 0);
 }
 
 
-oi_vis Obs_OIFITS::GetVis(UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
 
 }
 
 /// \todo This is a really hacky solution.  Come up with a better method.  Perhaps use
 /// the Baseline::GetOI_Vis2_record routine?
-oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
-  oi_vis2 vis2_table; // to store imported/input data
   oi_vis2 * outvis2 = (oi_vis2*) malloc(sizeof(oi_vis2));
   outvis2->revision = 1;
-  strncpy(outvis2->date_obs, "2014-01-01", 11);
-  strncpy(outvis2->arrname, "FAKE", FLEN_VALUE);
-  strncpy(outvis2->insname, "SIM", FLEN_VALUE);
+  strncpy(outvis2->date_obs, "2014-01-01", 11); //
   outvis2->numrec = 0;
   outvis2->record = (oi_vis2_record *) malloc(nv2 * sizeof(oi_vis2_record));
-
   UVPoint uv;
   Baseline * baseline;
   oi_wavelength wave;
@@ -151,18 +147,23 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
   bool valid_v2;
   long nv2_valid = 0;
   long irecord =0;
+
+// Now import V2 Tables
+  oi_vis2 vis2_table;
   int status = 0;
   int status2 = 0;
   fitsfile *fptr;
   fitsfile *fptr2;
   fits_open_file(&fptr, mstrFilename.c_str(), READONLY, &status);
   fits_open_file(&fptr2, mstrFilename.c_str(), READONLY, &status2);
-
   for(int k=0;k<nv2_tables; k++)
   {
-    printf("V2 TABLE %d\n", k);
+
     read_next_oi_vis2(fptr, &vis2_table, &status);
     read_oi_wavelength(fptr2, vis2_table.insname, &wave, &status2);
+    strncpy(outvis2->arrname, vis2_table.arrname, FLEN_VALUE);
+    strncpy(outvis2->insname, vis2_table.insname, FLEN_VALUE);
+    printf("V2 TABLE %d \t\tARRAY: %20s \t\t INSTRUMENT: %20s\n", k, vis2_table.arrname, vis2_table.insname);
     for (long i = 0; i < vis2_table.numrec; i++)
     {
       baseline = array->GetBaseline((vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
@@ -228,18 +229,17 @@ oi_vis2 Obs_OIFITS::GetVis2(UVPoint** uv_list, complex<double>** cvis,  Array * 
   fits_close_file(fptr2, &status2);
   printf("Total number of V2: %ld \t Valid V2: %ld\n", nv2, nv2_valid);
   fflush(stdout);
-  return *outvis2;
+  write_oi_vis2(outfile, *outvis2, 1, &status);
+  free_oi_vis2(outvis2);
 }
 
 
-oi_t3 Obs_OIFITS::GetT3(UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
   oi_t3 t3_table;
   oi_t3 * outt3 = (oi_t3*) malloc(sizeof(oi_t3));
   outt3->revision = 1;
   strncpy(outt3->date_obs, "2014-01-01", 11);
-  strncpy(outt3->arrname, "TODO", FLEN_VALUE);
-  strncpy(outt3->insname, "TODO", FLEN_VALUE);
   outt3->numrec = 0;
   outt3->record = (oi_t3_record *) malloc(nt3 * sizeof(oi_t3_record));
 
@@ -262,9 +262,13 @@ oi_t3 Obs_OIFITS::GetT3(UVPoint** uv_list, complex<double>** cvis, Array * array
 
   for(int k=0;k<nt3_tables; k++)
   {
-    printf("T3 TABLE %d\n", k);
     read_next_oi_t3(fptr, &t3_table, &status);
     read_oi_wavelength(fptr2, t3_table.insname, &wave, &status2);
+
+    strncpy(outt3->arrname, t3_table.arrname, FLEN_VALUE);
+    strncpy(outt3->insname, t3_table.insname, FLEN_VALUE);
+    printf("T3 TABLE %d \t\tARRAY: %20s \t\tINSTRUMENT: %20s\n", k, t3_table.arrname, t3_table.insname);
+
     for (long i = 0; i < t3_table.numrec; i++)
     {
       // Get the triplet
@@ -368,11 +372,12 @@ oi_t3 Obs_OIFITS::GetT3(UVPoint** uv_list, complex<double>** cvis, Array * array
   }
   fits_close_file(fptr, &status);
   fits_close_file(fptr2, &status2);
-  // Note, this memory object contains pointers and should be freed by the OIFITSLIB free_oi_t3.
-  return *outt3;
+
+  write_oi_t3(outfile, *outt3, 1, &status);
+  free_oi_t3(outt3);
 }
 
-oi_t4 Obs_OIFITS::GetT4(UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
+void Obs_OIFITS::WriteT4(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
   //  oi_t4* dummy;
   //  return *dummy;
