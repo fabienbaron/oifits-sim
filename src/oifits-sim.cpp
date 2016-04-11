@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
   Combiner combiner;
   SpectralMode spec_mode;
   vector <Observation *> observation_list;
+  bool oifits_mode = FALSE;
 
   // TODO: For now we only have one noise model, so we load it by default
   NoiseModel *noisemodel = new NoiseModel_Tatulli2006();
@@ -134,60 +135,68 @@ int main(int argc, char *argv[])
     // needed to run the simulation, but I don't want to write a module to parse
     // the OIFITS array and wavelength tables.  So, we'll just require
     // that the array and spectral mode be specified too.
+
+    // FB: since Brian was lazy and I'm not, I'm going to do it correctly ;)
     if ((strcmp(argv[i], "-d") == 0) && (i < argc - 1))
     {
       observation_list = Obs_OIFITS::ReadObservation_OIFITS(string(argv[i + 1]));
-      n_params += 1;
+      oifits_mode == true;
+      printf("Command line interpreted as requiring OIFITS mode\n");
+      n_params = 7;
     }
-
-    // ################
-    // or (2) we are simulating something from scratch in which case we need
-    // the array
-    if ((strcmp(argv[i], "-a") == 0) && (i < argc - 1))
+    else
     {
-      array.ImportFile(string(argv[i + 1]), comment_chars);
-      array.ParseOptions(argv, i, argc);
-      n_params += 1;
-    }
+      // ################
+      // or (2) we are simulating something from scratch in which case we need
+      // the array
 
-    // the combiner
-    if ((strcmp(argv[i], "-c") == 0) && (i < argc - 1))
-    {
-      combiner.ImportFile(string(argv[i + 1]), comment_chars);
-      n_params += 1;
-    }
-
-    // the spectral mode.  Note, the combiner must be specified first so we can check that
-    // the two are indeed to be used with eachother.
-    if ((strcmp(argv[i], "-m") == 0) && (i < argc - 1))
-    {
-      if (combiner.name == "")
+      if ((strcmp(argv[i], "-a") == 0) && (i < argc - 1))
       {
-        cout << "The combiner, -c, must be specified before the spectral mode, -m.\n";
-        exit(0);
+        array.ImportFile(string(argv[i + 1]), comment_chars);
+        array.ParseOptions(argv, i, argc);
+        n_params += 1;
       }
 
-      spec_mode.ImportFile(string(argv[i + 1]), combiner.GetName(), comment_chars);
-      n_params += 1;
-
-    }
-
-    // Now for observation_list
-    if ((strcmp(argv[i], "-obs") == 0) && (i < argc - 1))
-    {
-      // First ensure that the array has been defined.  If not, quit.
-      if (array.GetArrayName() == "")
+      // the combiner
+      if ((strcmp(argv[i], "-c") == 0) && (i < argc - 1))
       {
-        cout << "The array, -a, must be specified before the observation list, -obs.\n";
-        exit(0);
+        combiner.ImportFile(string(argv[i + 1]), comment_chars);
+        n_params += 1;
       }
 
-      // Observations are a little funny.  We permit both files and command line options.
-      // Just pass things off to the observation class so it can decide what to do:
-      observation_list = Observation::ParseCommandLine(&array, argv, i, argc, comment_chars);
-      n_params += 1;
+      // the spectral mode.  Note, the combiner must be specified first so we can check that
+      // the two are indeed to be used with eachother.
+      if ((strcmp(argv[i], "-m") == 0) && (i < argc - 1))
+      {
+        if (combiner.name == "")
+        {
+          cout << "The combiner, -c, must be specified before the spectral mode, -m.\n";
+          exit(0);
+        }
+
+        spec_mode.ImportFile(string(argv[i + 1]), combiner.GetName(), comment_chars);
+        n_params += 1;
+
+      }
+
+      // Now for observation_list
+      if ((strcmp(argv[i], "-obs") == 0) && (i < argc - 1))
+      {
+        // First ensure that the array has been defined.  If not, quit.
+        if (array.GetArrayName() == "")
+        {
+          cout << "The array, -a, must be specified before the observation list, -obs.\n";
+          exit(0);
+        }
+
+        // Observations are a little funny.  We permit both files and command line options.
+        // Just pass things off to the observation class so it can decide what to do:
+        observation_list = Observation::ParseCommandLine(&array, argv, i, argc, comment_chars);
+        n_params += 1;
+      }
+
     }
-  }
+      }
 
   // Check that all parameters were specified
   // TODO: Better checking here should be implemented
