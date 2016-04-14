@@ -138,6 +138,7 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
     Baseline baseline;
     oi_wavelength wave;
     double wavelength, dwavelength;
+    double v2, v2err;
     bool valid_v2;
     long nv2_valid = 0;
 
@@ -166,14 +167,11 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
         dwavelength = wave.eff_band[j];
         uv.Scale(1./wavelength);
 
+        v2 = (vis2_table.record[i]).vis2data[j];
+        v2err = (vis2_table.record[i]).vis2err[j];
         valid_v2 =  !(((vis2_table.record[i]).flag[j] != 0)
-        || !isfinite((vis2_table.record[i]).vis2data[j])
-        || !isfinite((vis2_table.record[i]).vis2err[j])
-        || ((vis2_table.record[i]).vis2data[j] == DOUBLENULLVALUE)
-        || ((vis2_table.record[i]).vis2data[j] == FLOATNULLVALUE)
-        || ((vis2_table.record[i]).vis2err[j] == DOUBLENULLVALUE)
-        || ((vis2_table.record[i]).vis2err[j] == FLOATNULLVALUE)
-        || (vis2_table.record[i]).vis2err[j] <= 0);
+        || !isfinite(v2) || !isfinite(v2err) || (v2 == DOUBLENULLVALUE) || ( v2 == FLOATNULLVALUE)
+        || (v2err == DOUBLENULLVALUE) || (v2 == FLOATNULLVALUE) || v2err <= 0);
 
         if (valid_v2 == TRUE)
         {
@@ -220,6 +218,7 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
   complex<double> bis;
   oi_wavelength wave;
   double wavelength, dwavelength;
+  double t3amp, t3phi, t3amperr, t3phierr;
   bool valid_t3amp, valid_t3phi;
   long nt3_valid = 0;
   long irecord =0;
@@ -258,23 +257,14 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
         uv2.Scale(1./wavelength);
         uv3.Scale(1./wavelength);
 
-        valid_t3amp = !(((t3_table.record[i]).t3amperr[j] <= 0)
-        || !isfinite((t3_table.record[i]).t3amp[j])
-        || !isfinite((t3_table.record[i]).t3amperr[j])
-        || ((t3_table.record[i]).t3amp[j] == DOUBLENULLVALUE)
-        || ((t3_table.record[i]).t3amp[j] == FLOATNULLVALUE)
-        || ((t3_table.record[i]).t3amperr[j] == DOUBLENULLVALUE)
-        || ((t3_table.record[i]).t3amperr[j] == FLOATNULLVALUE)
-        || ((t3_table.record[i]).flag[j] != 0));
+        t3amp=(t3_table.record[i]).t3amp[j];
+        t3amperr=(t3_table.record[i]).t3amperr[j];
+        t3phi=(t3_table.record[i]).t3phi[j];
+        t3phierr= (t3_table.record[i]).t3phierr[j];
 
-        valid_t3phi =  !(((t3_table.record[i]).t3phierr[j] <= 0)
-        || !isfinite((t3_table.record[i]).t3phi[j])
-        || !isfinite((t3_table.record[i]).t3phierr[j])
-        || ((t3_table.record[i]).t3phi[j] == DOUBLENULLVALUE)
-        || ((t3_table.record[i]).t3phi[j] == FLOATNULLVALUE)
-        || ((t3_table.record[i]).t3phierr[j] == DOUBLENULLVALUE)
-        || ((t3_table.record[i]).t3phierr[j] == FLOATNULLVALUE)
-        || ((t3_table.record[i]).flag[j] != 0));
+        valid_t3amp = !(t3amperr <= 0) && isfinite(t3amp) && isfinite(t3amperr)  && (t3amp != DOUBLENULLVALUE) && (t3amp != FLOATNULLVALUE) && (t3amperr != DOUBLENULLVALUE) && (t3amperr != FLOATNULLVALUE) && ((t3_table.record[i]).flag[j] == 0);
+
+        valid_t3phi =  !(t3phierr <= 0) && isfinite(t3phi) && isfinite(t3phierr) && (t3phi != DOUBLENULLVALUE) && (t3phi != FLOATNULLVALUE) && (t3phierr != DOUBLENULLVALUE) && ( t3phierr != FLOATNULLVALUE) && ((t3_table.record[i]).flag[j] == 0);
 
         // Compute the bispectra
         bis = triplet.GetT3(*target, uv1, uv2, uv3, wavelength, dwavelength);
