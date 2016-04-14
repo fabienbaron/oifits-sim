@@ -167,10 +167,8 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
         uv.Scale(1./wavelength);
 
         valid_v2 =  !(((vis2_table.record[i]).flag[j] != 0)
-        || isnan((vis2_table.record[i]).vis2data[j])
-        || isnan((vis2_table.record[i]).vis2err[j])
-        || isinf((vis2_table.record[i]).vis2data[j])
-        || isinf((vis2_table.record[i]).vis2err[j])
+        || !isfinite((vis2_table.record[i]).vis2data[j])
+        || !isfinite((vis2_table.record[i]).vis2err[j])
         || ((vis2_table.record[i]).vis2data[j] == DOUBLENULLVALUE)
         || ((vis2_table.record[i]).vis2data[j] == FLOATNULLVALUE)
         || ((vis2_table.record[i]).vis2err[j] == DOUBLENULLVALUE)
@@ -218,6 +216,7 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
   triplet.mBaselines[0]=&baseline1;
   triplet.mBaselines[1]=&baseline2;
   triplet.mBaselines[2]=&baseline3;
+
   complex<double> bis;
   oi_wavelength wave;
   double wavelength, dwavelength;
@@ -260,10 +259,8 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
         uv3.Scale(1./wavelength);
 
         valid_t3amp = !(((t3_table.record[i]).t3amperr[j] <= 0)
-        || isnan((t3_table.record[i]).t3amp[j])
-        || isnan((t3_table.record[i]).t3amperr[j])
-        || isinf((t3_table.record[i]).t3amp[j])
-        || isinf((t3_table.record[i]).t3amperr[j])
+        || !isfinite((t3_table.record[i]).t3amp[j])
+        || !isfinite((t3_table.record[i]).t3amperr[j])
         || ((t3_table.record[i]).t3amp[j] == DOUBLENULLVALUE)
         || ((t3_table.record[i]).t3amp[j] == FLOATNULLVALUE)
         || ((t3_table.record[i]).t3amperr[j] == DOUBLENULLVALUE)
@@ -271,10 +268,8 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
         || ((t3_table.record[i]).flag[j] != 0));
 
         valid_t3phi =  !(((t3_table.record[i]).t3phierr[j] <= 0)
-        || isnan((t3_table.record[i]).t3phi[j])
-        || isnan((t3_table.record[i]).t3phierr[j])
-        || isinf((t3_table.record[i]).t3phi[j])
-        || isinf((t3_table.record[i]).t3phierr[j])
+        || !isfinite((t3_table.record[i]).t3phi[j])
+        || !isfinite((t3_table.record[i]).t3phierr[j])
         || ((t3_table.record[i]).t3phi[j] == DOUBLENULLVALUE)
         || ((t3_table.record[i]).t3phi[j] == FLOATNULLVALUE)
         || ((t3_table.record[i]).t3phierr[j] == DOUBLENULLVALUE)
