@@ -26,7 +26,6 @@ class Triplet
 {
   private:
     Station     *   mStations[3];
-    Baseline    *   mBaselines[3];
     string name;
 
     T3Hash     mT3Values; // Stores computed bispectrum values
@@ -42,6 +41,7 @@ class Triplet
     string  GetHashKey(Target & target, UVPoint uv_ab, UVPoint uv_bc, UVPoint uv_ac);
 
   public:
+    Baseline    *   mBaselines[3];
     string  GetName(void);
     bool    ContainsBaseline(string bl_name);
 

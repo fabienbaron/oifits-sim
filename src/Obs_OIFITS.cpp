@@ -119,7 +119,7 @@ void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>**
 void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
   // TODO
-  // Temporary code -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
+  // Temporary code for Array import -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
 // also, we only read ONE array file
     int status = 0, status2 =0;
     fitsfile *infile;
@@ -127,13 +127,15 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
     oi_array oi_arr;
     char* arrname;
     read_next_oi_array(infile, &oi_arr, &status);
+
+
     write_oi_array(outfile, oi_arr, 1, &status);
     free_oi_array(&oi_arr);
     fits_close_file(infile, &status);
 
 
     UVPoint uv;
-    Baseline * baseline;
+    Baseline baseline;
     oi_wavelength wave;
     double wavelength, dwavelength;
     bool valid_v2;
@@ -153,8 +155,9 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
     printf("V2 TABLE %d \t\tARRAY: %20s \t\t INSTRUMENT: %20s\n", k, vis2_table.arrname, vis2_table.insname);
     for (long i = 0; i < vis2_table.numrec; i++)
     {
+      //printf("Station Indexes: %i %i \n", (vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
       //baseline = array->GetBaseline((vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
-      //if(baseline == NULL) printf("Station Indexes: %i %i \n", (vis2_table.record[i]).sta_index[0], (vis2_table.record[i]).sta_index[1]);
+
       for (long j = 0; j < vis2_table.nwave; j++)
       {
         uv.u = (vis2_table.record[i]).ucoord;
@@ -176,8 +179,7 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
 
         if (valid_v2 == TRUE)
         {
-          //baseline->GetVis2(*target, uv, wavelength, dwavelength) + v2_err * Rangauss(random_seed);
-          (vis2_table.record[i]).vis2data[j] = 0.12345;
+          (vis2_table.record[i]).vis2data[j] = baseline.GetVis2(*target, uv, wavelength, dwavelength) + (vis2_table.record[i]).vis2err[j] * Rangauss(random_seed);
           ++nv2_valid;
         }
         else
@@ -209,7 +211,14 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
   UVPoint uv1;
   UVPoint uv2;
   UVPoint uv3;
-  Triplet * triplet;
+  Triplet triplet;
+  Baseline baseline1;
+  Baseline baseline2;
+  Baseline baseline3;
+  triplet.mBaselines[0]=&baseline1;
+  triplet.mBaselines[1]=&baseline2;
+  triplet.mBaselines[2]=&baseline3;
+  complex<double> bis;
   oi_wavelength wave;
   double wavelength, dwavelength;
   bool valid_t3amp, valid_t3phi;
@@ -273,13 +282,15 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
         || ((t3_table.record[i]).flag[j] != 0));
 
         // Compute the bispectra
-        //  bis = triplet->GetT3(*target, uv1, uv2, uv3, wavelength, dwavelength);
+        bis = triplet.GetT3(*target, uv1, uv2, uv3, wavelength, dwavelength);
+
         (t3_table.record[i]).flag[j] = ! ( ( (t3_table.record[i]).flag[j] == FALSE) && (valid_t3amp == TRUE) && (valid_t3amp == TRUE) );
         if((t3_table.record[i]).flag[j]  == FALSE)
           nt3_valid++;
+
         if (valid_t3amp == TRUE)
         {
-          (t3_table.record[i]).t3amp[j] = 0.12324;
+          (t3_table.record[i]).t3amp[j] = abs(bis) + (t3_table.record[i]).t3amperr[j] * Rangauss(random_seed);
         }
         else
         {
@@ -289,7 +300,7 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
 
         if (valid_t3phi == TRUE)
         {
-          (t3_table.record[i]).t3phi[j] = 1.23456;
+          (t3_table.record[i]).t3phi[j] = arg(bis)*180./PI + (t3_table.record[i]).t3phierr[j] * Rangauss(random_seed);
 
         }
         else

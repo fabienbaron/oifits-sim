@@ -167,7 +167,6 @@ complex<double> Triplet::GetT3(Target & target, UVPoint uv_ab, UVPoint uv_bc, UV
 {
     string hash_key = GetHashKey(target, uv_ab, uv_bc, uv_ac);
     complex <double> bis(0.0, 0.0);
-
     // First try looking up the value in the hash table
     if(mT3Values.find(hash_key) != mT3Values.end())
     {
