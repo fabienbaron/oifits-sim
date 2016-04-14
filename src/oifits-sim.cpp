@@ -266,14 +266,6 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
       // SETUP HELPER OIFITS TABLES (COPYING THE ORIGINAL ONES)
       // NOTE: wavelength table are not set here, but done during VIS/V2/T3/T4
       // so we only want to copy the array table
-      // the target table is generated from command line info
-      if(i==0)
-      {
-        oi_target oi_targ = target->GetOITarget();
-        write_oi_target(outfile, oi_targ, &status);
-        free_oi_target(&oi_targ);
-      }
-
     }
 
     if (observation->HasVIS())

@@ -4,6 +4,7 @@
 #include "UVPoint.h"
 #include "Baseline.h"
 #include "Array.h"
+#include "Target.h"
 #include "Common.h"
 #include "SpectralMode.h"
 
@@ -12,10 +13,8 @@
 vector <Observation*> Obs_OIFITS::ReadObservation_OIFITS(string filename)
 {
   vector<Observation*> observations;
-
   // We don't attempt to read anything from the OIFITS file, just set the filename.
   observations.push_back(new Obs_OIFITS(filename) );
-
   return observations;
 }
 
@@ -118,21 +117,28 @@ void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>**
 /// the Baseline::GetOI_Vis2_record routine?
 void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,  Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
-  // TODO
+  // TODO: move out the code for array, target and wavelength
+  // right now th code will duplicate some wavelength tables, which oi validator does not like
   // Temporary code for Array import -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
-// also, we only read ONE array file
+  // also, we only read ONE array file
     int status = 0, status2 =0;
     fitsfile *infile;
     fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
+
+    // the target table is generated from command line info
+    oi_target oi_targ;
+    // overrides the target ID since we're going to use the one from the file
+    read_oi_target(infile, &oi_targ, &status);
+    strncpy((oi_targ.targ[0]).target, target->name.c_str(), 17);
+    write_oi_target(outfile, oi_targ, &status);
+    free_oi_target(&oi_targ);
+
     oi_array oi_arr;
     char* arrname;
     read_next_oi_array(infile, &oi_arr, &status);
-
-
     write_oi_array(outfile, oi_arr, 1, &status);
     free_oi_array(&oi_arr);
     fits_close_file(infile, &status);
-
 
     UVPoint uv;
     Baseline baseline;
@@ -141,7 +147,7 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
     double v2, v2err;
     bool valid_v2;
     long nv2_valid = 0;
-
+    char previous_name[FLEN_VALUE];
     status = 0;
     status2 = 0;
     fitsfile *fptr;
@@ -153,6 +159,7 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
     {
     read_next_oi_vis2(fptr, &vis2_table, &status);
     read_oi_wavelength(fptr2, vis2_table.insname, &wave, &status2);
+
     printf("V2 TABLE %d \t\tARRAY: %20s \t\t INSTRUMENT: %20s\n", k, vis2_table.arrname, vis2_table.insname);
     for (long i = 0; i < vis2_table.numrec; i++)
     {
@@ -188,7 +195,12 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
       }
     }
     // Table finished -- now write it to output file
-    write_oi_wavelength(outfile, wave, 1, &status);
+    if(k ==0)
+      write_oi_wavelength(outfile, wave, 1, &status);
+    else if (strcmp(previous_name, vis2_table.insname) !=0)
+      write_oi_wavelength(outfile, wave, 1, &status);
+    strcpy(previous_name, vis2_table.insname);
+
     write_oi_vis2(outfile, vis2_table, 1, &status);
     free_oi_wavelength(&wave);
     free_oi_vis2(&vis2_table);
@@ -214,7 +226,7 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
   triplet.mBaselines[0]=&baseline1;
   triplet.mBaselines[1]=&baseline2;
   triplet.mBaselines[2]=&baseline3;
-
+  char previous_name[FLEN_VALUE];
   complex<double> bis;
   oi_wavelength wave;
   double wavelength, dwavelength;
@@ -297,7 +309,12 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
 
       }
     }
-    write_oi_wavelength(outfile, wave, 1, &status);
+    if(k ==0)
+      write_oi_wavelength(outfile, wave, 1, &status);
+    else if (strcmp(previous_name, t3_table.insname) !=0)
+      write_oi_wavelength(outfile, wave, 1, &status);
+    strcpy(previous_name, t3_table.insname);
+
     write_oi_t3(outfile, t3_table, 1, &status);
     free_oi_wavelength(&wave);
     free_oi_t3(&t3_table);

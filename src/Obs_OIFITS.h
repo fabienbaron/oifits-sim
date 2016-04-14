@@ -12,7 +12,6 @@ class Obs_OIFITS : public Observation
     int target_id; // the first target in the OIFITS file
   public:
     Obs_OIFITS(string filename);
-
     static vector <Observation*> ReadObservation_OIFITS(string filename);
 
     void  WriteVis(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
