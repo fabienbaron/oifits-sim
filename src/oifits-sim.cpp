@@ -264,9 +264,10 @@ void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spe
       Obs_OIFITS *observation = dynamic_cast<Obs_OIFITS *>(observation_list.back());
 
       // SETUP HELPER OIFITS TABLES (COPYING THE ORIGINAL ONES)
-      // NOTE: wavelength table are not set here, but done during VIS/V2/T3/T4
-      // so we only want to copy the array table
+      observation->WriteAuxTables(outfile, array, combiner, spec, target);
     }
+
+
 
     if (observation->HasVIS())
         observation->WriteVis(outfile, &uv_list, &cvis, array, combiner, spec, target, noisemodel, random_seed);

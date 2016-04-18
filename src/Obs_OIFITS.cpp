@@ -25,7 +25,7 @@ Obs_OIFITS::Obs_OIFITS(string filename)
 
   // attempt to read OIFITS input file
   fitsfile *fptr;
-  int status = 0;
+  STATUS status = 0;
 
   nvis_tables = 0; nv2_tables =0; nt3_tables =0; nt4_tables=0;
   nt4 =0; nt3 =0; nv2 =0; nvis=0;
@@ -107,6 +107,61 @@ Obs_OIFITS::Obs_OIFITS(string filename)
   mbHasT4 = false; //( nt4_tables > 0);
 }
 
+void Obs_OIFITS::WriteAuxTables(fitsfile* outfile, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target)
+{
+
+  // code for array, target and wavelength
+  // right now th code will duplicate some wavelength tables, which oi validator does not like
+  // Temporary code for Array import -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
+  // also, we only read ONE array file
+    STATUS status = 0;
+    fitsfile *infile;
+    // the target table is generated from command line info
+
+    status =0;
+    fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
+    if(status) throw std::runtime_error("Could not read OIFITS file.");
+    oi_target oi_targ;
+    // overrides the target ID since we're going to use the one from the file
+    read_oi_target(infile, &oi_targ, &status);
+    strncpy((oi_targ.targ[0]).target, target->name.c_str(), 17);
+    write_oi_target(outfile, oi_targ, &status);
+    free_oi_target(&oi_targ);
+    printf("Writing OI_TARGET table\n");fflush(stdout);
+    fits_close_file(infile, &status);
+
+    status=0;
+    fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
+    if(status) throw std::runtime_error("Could not read OIFITS file.");
+    oi_array oi_arr;
+    while(status ==0)
+    {
+    read_next_oi_array(infile, &oi_arr, &status);
+    if(status ==0)
+      {
+        printf("Writing OI_ARRAY table: %s\n", oi_arr.arrname);fflush(stdout);
+        write_oi_array(outfile, oi_arr, 1, &status);
+      }
+    }
+    fits_close_file(infile, &status);
+
+
+    status =0;
+    fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
+    if(status) throw std::runtime_error("Could not read OIFITS file.");
+    oi_wavelength wave;
+    while(status ==0)
+    {
+      read_next_oi_wavelength(infile, &wave, &status);
+      if(status ==0)
+        {
+          printf("Writing OI_WAVELENGTH table: %s\n", wave.insname);fflush(stdout);
+          write_oi_wavelength(outfile, wave, 1, &status);
+        }
+      //free_oi_wavelength(&wave);
+    }
+    fits_close_file(infile, &status);
+}
 
 void Obs_OIFITS::WriteVis(fitsfile* outfile,UVPoint** uv_list, complex<double>** cvis, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed)
 {
@@ -121,25 +176,7 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
   // right now th code will duplicate some wavelength tables, which oi validator does not like
   // Temporary code for Array import -- needs to be moved to Obs_OIFITS to a location where input and output filenames are known
   // also, we only read ONE array file
-    int status = 0, status2 =0;
-    fitsfile *infile;
-    fits_open_file(&infile, mstrFilename.c_str(), READONLY, &status);
-
-    // the target table is generated from command line info
-    oi_target oi_targ;
-    // overrides the target ID since we're going to use the one from the file
-    read_oi_target(infile, &oi_targ, &status);
-    strncpy((oi_targ.targ[0]).target, target->name.c_str(), 17);
-    write_oi_target(outfile, oi_targ, &status);
-    free_oi_target(&oi_targ);
-
-    oi_array oi_arr;
-    char* arrname;
-    read_next_oi_array(infile, &oi_arr, &status);
-    write_oi_array(outfile, oi_arr, 1, &status);
-    free_oi_array(&oi_arr);
-    fits_close_file(infile, &status);
-
+    STATUS status = 0, status2 =0;
     UVPoint uv;
     Baseline baseline;
     oi_wavelength wave;
@@ -195,11 +232,6 @@ void Obs_OIFITS::WriteVis2(fitsfile* outfile, UVPoint** uv_list, complex<double>
       }
     }
     // Table finished -- now write it to output file
-    if(k ==0)
-      write_oi_wavelength(outfile, wave, 1, &status);
-    else if (strcmp(previous_name, vis2_table.insname) !=0)
-      write_oi_wavelength(outfile, wave, 1, &status);
-    strcpy(previous_name, vis2_table.insname);
 
     write_oi_vis2(outfile, vis2_table, 1, &status);
     free_oi_wavelength(&wave);
@@ -234,8 +266,7 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
   bool valid_t3amp, valid_t3phi;
   long nt3_valid = 0;
   long irecord =0;
-  int status = 0;
-  int status2 = 0;
+  STATUS status = 0, status2 = 0;
   fitsfile *fptr;
   fitsfile *fptr2;
   fits_open_file(&fptr, mstrFilename.c_str(), READONLY, &status);
@@ -309,12 +340,6 @@ void Obs_OIFITS::WriteT3(fitsfile* outfile, UVPoint** uv_list, complex<double>**
 
       }
     }
-    if(k ==0)
-      write_oi_wavelength(outfile, wave, 1, &status);
-    else if (strcmp(previous_name, t3_table.insname) !=0)
-      write_oi_wavelength(outfile, wave, 1, &status);
-    strcpy(previous_name, t3_table.insname);
-
     write_oi_t3(outfile, t3_table, 1, &status);
     free_oi_wavelength(&wave);
     free_oi_t3(&t3_table);

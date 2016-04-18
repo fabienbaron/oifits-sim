@@ -14,6 +14,7 @@ class Obs_OIFITS : public Observation
     Obs_OIFITS(string filename);
     static vector <Observation*> ReadObservation_OIFITS(string filename);
 
+    void WriteAuxTables(fitsfile* outfile, Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target);
     void  WriteVis(fitsfile* outfile, UVPoint** uv_list, complex<double>** cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
     void WriteVis2(fitsfile* outfile,UVPoint** uv_list, complex<double>** cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
     void WriteT3(fitsfile* outfile,  UVPoint** uv_list, complex<double>** cvis,Array * array, Combiner * combiner, SpectralMode * spec_mode, Target * target, NoiseModel * noisemodel, Rand_t random_seed);
