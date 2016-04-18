@@ -124,10 +124,13 @@ void Obs_OIFITS::WriteAuxTables(fitsfile* outfile, Array * array, Combiner * com
     oi_target oi_targ;
     // overrides the target ID since we're going to use the one from the file
     read_oi_target(infile, &oi_targ, &status);
-    strncpy((oi_targ.targ[0]).target, target->name.c_str(), 17);
-    write_oi_target(outfile, oi_targ, &status);
-    free_oi_target(&oi_targ);
-    printf("Writing OI_TARGET table\n");fflush(stdout);
+    if(status ==0)
+        {
+          strncpy((oi_targ.targ[0]).target, target->name.c_str(), 17);
+          write_oi_target(outfile, oi_targ, &status);
+          free_oi_target(&oi_targ);
+          printf("Writing OI_TARGET table\n");fflush(stdout);
+        }
     fits_close_file(infile, &status);
 
     status=0;
@@ -141,8 +144,10 @@ void Obs_OIFITS::WriteAuxTables(fitsfile* outfile, Array * array, Combiner * com
       {
         printf("Writing OI_ARRAY table: %s\n", oi_arr.arrname);fflush(stdout);
         write_oi_array(outfile, oi_arr, 1, &status);
+        free_oi_array(&oi_arr);
       }
     }
+
     fits_close_file(infile, &status);
 
 
@@ -157,9 +162,11 @@ void Obs_OIFITS::WriteAuxTables(fitsfile* outfile, Array * array, Combiner * com
         {
           printf("Writing OI_WAVELENGTH table: %s\n", wave.insname);fflush(stdout);
           write_oi_wavelength(outfile, wave, 1, &status);
+          free_oi_wavelength(&wave);
         }
-      //free_oi_wavelength(&wave);
+
     }
+
     fits_close_file(infile, &status);
 }
 
