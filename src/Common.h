@@ -41,7 +41,7 @@ static const double WGS_F = 1.0 / 298.257223563;
 /// This value is used in FastOneRead function.
 const double instrument_throughput = 0.1324 / 0.65;
 
-const double instrument_visibility = 1.;        // visibility losses
+const double instrument_visibility = 1.; // visibility losses
 
 const double PI = 3.141592653589793238462643;
 
@@ -62,9 +62,9 @@ double simplyfringes(double magnitude);
 
 double sinc(double number);
 
-void    StringSplit(string str, string delim, vector<string> & results);
-string  StripWhitespace(string str);
-void    StripWhitespace(vector<string> & strings);
+void StringSplit(string str, string delim, vector<string> &results);
+string StripWhitespace(string str);
+void StripWhitespace(vector<string> &strings);
 vector<string> ReadFile(string filename, string comment_chars, string error_message);
 
 void Swap(int *a, int *b);

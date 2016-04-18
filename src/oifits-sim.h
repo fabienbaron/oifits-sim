@@ -21,4 +21,5 @@ class NoiseModel;
 
 using namespace std;
 
-void run_sim(Target * target, Array * array, Combiner * combiner, SpectralMode * spec, NoiseModel * noisemodel, vector<Observation*> observations, string output_filename);
+void run_sim(Target *target, Array *array, Combiner *combiner, SpectralMode *spec, NoiseModel *noisemodel, vector<Observation *> observations,
+             string output_filename);

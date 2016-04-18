@@ -1,0 +1,3 @@
+Right now in HA mode, VIS uses unhashed NFFT while V2 and T3 use DFT and hashes. Also the noise models are disabled right now
+* Implement simple linear noise models (fast).
+* Rationalize the whole Obs_HA class, hashes should be replaced by a global complex visibility index, and we can use flagging to disable unwanted baselines.
