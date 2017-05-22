@@ -132,7 +132,7 @@ complex<double> Baseline::ComputeVisibility(Target &target, UVPoint uv, double w
       xtransform[ii] = polar(1., 2.0 * PI * target.pixellation * milliarcsec * (uv.u * (double)(ii - nx / 2)));
 
     for (int jj = 0; jj < ny; jj++)
-      ytransform[jj] = polar(1., 2.0 * PI * target.pixellation * milliarcsec * (uv.v * (double)(jj - ny / 2)));
+      ytransform[jj] = polar(1., -2.0 * PI * target.pixellation * milliarcsec * (uv.v * (double)(jj - ny / 2)));
 
     for (int ii = 0; ii < nx; ii++)
       for (int jj = 0; jj < ny; jj++) {
