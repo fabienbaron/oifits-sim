@@ -197,8 +197,9 @@ void Obs_OIFITS::WriteVis2(fitsfile *outfile, UVPoint **uv_list, complex<double>
   Baseline baseline;
   oi_wavelength wave;
   double wavelength, dwavelength;
-  double v2, v2err;
+  double v2, v2err, original_snr, newv2;
   bool valid_v2;
+  bool SNR_MODE = TRUE; // copy snr of original data -- if false, the uncertainties are copied instead
   long nv2_valid = 0;
   char previous_name[FLEN_VALUE];
   status = 0;
@@ -233,8 +234,18 @@ void Obs_OIFITS::WriteVis2(fitsfile *outfile, UVPoint **uv_list, complex<double>
                      (v2err == DOUBLENULLVALUE) || (v2 == FLOATNULLVALUE) || v2err <= 0);
 
         if (valid_v2 == TRUE) {
-          (vis2_table.record[i]).vis2data[j] =
-              baseline.GetVis2(*target, uv, wavelength, dwavelength) + (vis2_table.record[i]).vis2err[j] * Rangauss(random_seed);
+          newv2 = baseline.GetVis2(*target, uv, wavelength, dwavelength);
+          if(SNR_MODE == TRUE)
+          {
+            original_snr = fabs(v2/v2err); // note: may be zero
+            if(original_snr < 1e-4) // should be a safe level
+              original_snr = 1e-4;
+            (vis2_table.record[i]).vis2data[j] = newv2 + newv2/original_snr * Rangauss(random_seed);
+          }
+          else
+          {
+                (vis2_table.record[i]).vis2data[j] = newv2 + v2err * Rangauss(random_seed);
+          }
           ++nv2_valid;
         } else {
           // Force-flag it
