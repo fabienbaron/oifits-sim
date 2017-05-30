@@ -240,7 +240,8 @@ void Obs_OIFITS::WriteVis2(fitsfile *outfile, UVPoint **uv_list, complex<double>
             original_snr = fabs(v2/v2err); // note: may be zero
             if(original_snr < 1e-4) // should be a safe level
               original_snr = 1e-4;
-            (vis2_table.record[i]).vis2data[j] = newv2 + newv2/original_snr * Rangauss(random_seed);
+            (vis2_table.record[i]).vis2data[j] = newv2 + fabs(newv2/original_snr) * Rangauss(random_seed);
+            (vis2_table.record[i]).vis2err[j] = fabs(newv2/original_snr);
           }
           else
           {
@@ -270,7 +271,7 @@ void Obs_OIFITS::WriteVis2(fitsfile *outfile, UVPoint **uv_list, complex<double>
 void Obs_OIFITS::WriteT3(fitsfile *outfile, UVPoint **uv_list, complex<double>* &cvis, Array *array, Combiner *combiner, SpectralMode *spec_mode,
                          Target *target, NoiseModel *noisemodel, Rand_t random_seed) {
   oi_t3 t3_table;
-
+bool SNR_MODE = TRUE; 
   UVPoint uv1;
   UVPoint uv2;
   UVPoint uv3;
@@ -285,7 +286,7 @@ void Obs_OIFITS::WriteT3(fitsfile *outfile, UVPoint **uv_list, complex<double>* 
   complex<double> bis;
   oi_wavelength wave;
   double wavelength, dwavelength;
-  double t3amp, t3phi, t3amperr, t3phierr;
+  double t3amp, t3phi, t3amperr, t3phierr, original_snr, newt3amp;
   bool valid_t3amp, valid_t3phi;
   long nt3_valid = 0;
   long irecord = 0;
@@ -340,7 +341,20 @@ void Obs_OIFITS::WriteT3(fitsfile *outfile, UVPoint **uv_list, complex<double>* 
           nt3_valid++;
 
         if (valid_t3amp == TRUE) {
-          (t3_table.record[i]).t3amp[j] = abs(bis) + (t3_table.record[i]).t3amperr[j] * Rangauss(random_seed);
+          newt3amp =abs(bis);
+          if(SNR_MODE == TRUE)
+          {
+            original_snr = fabs(t3amp/t3amperr); // note: may be zero
+            if(original_snr < 1e-4) // should be a safe level
+              original_snr = 1e-4;
+            (t3_table.record[i]).t3amp[j] = newt3amp + fabs(newt3amp/original_snr) * Rangauss(random_seed);
+            (t3_table.record[i]).t3amperr[j] = fabs(newt3amp/original_snr);
+          }
+          else
+          {
+          (t3_table.record[i]).t3amp[j] =  + (t3_table.record[i]).t3amperr[j] * Rangauss(random_seed);
+          }
+
         } else {
           (t3_table.record[i]).t3amp[j] = nan("");
           (t3_table.record[i]).t3amperr[j] = nan("");
